@@ -1,0 +1,11 @@
+reminder_id,request_id,author_approval_id,reminder_type,sent_at,sent_by,reminder_number,delivery_status,next_reminder_due
+REM-0002-04,REQ-0002,AUT-0002-04,follow-up,2026-05-16,workflow-automation,1,sent,2026-05-23
+REM-0002-05,REQ-0002,AUT-0002-05,follow-up,2026-05-16,workflow-automation,1,sent,2026-05-23
+REM-0003-02,REQ-0003,AUT-0003-02,follow-up,2026-05-20,workflow-automation,1,sent,2026-05-27
+REM-0003-03,REQ-0003,AUT-0003-03,follow-up,2026-05-20,workflow-automation,1,sent,2026-05-27
+REM-0007-03,REQ-0007,AUT-0007-03,follow-up,2026-06-05,workflow-automation,1,sent,2026-06-12
+REM-0007-04,REQ-0007,AUT-0007-04,follow-up,2026-06-05,workflow-automation,1,sent,2026-06-12
+REM-0008-04,REQ-0008,AUT-0008-04,follow-up,2026-06-09,workflow-automation,1,sent,2026-06-16
+REM-0008-05,REQ-0008,AUT-0008-05,follow-up,2026-06-09,workflow-automation,1,sent,2026-06-16
+REM-0012-02,REQ-0012,AUT-0012-02,follow-up,2026-06-25,workflow-automation,1,sent,2026-07-02
+REM-0012-03,REQ-0012,AUT-0012-03,follow-up,2026-06-25,workflow-automation,1,sent,2026-07-02

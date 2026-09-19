@@ -1,0 +1,13 @@
+review_identifier,review_title,project_phase,priority,owner_role,status_as_of,next_milestone_due
+SYN-REVIEW-0001,Synthetic review topic 01,approval,normal,managing-editor,2026-07-01,2026-05-22
+SYN-REVIEW-0002,Synthetic review topic 02,approval,normal,managing-editor,2026-07-01,2026-05-26
+SYN-REVIEW-0003,Synthetic review topic 03,approval,normal,managing-editor,2026-07-01,2026-05-30
+SYN-REVIEW-0004,Synthetic review topic 04,approval,high,managing-editor,2026-07-01,2026-06-03
+SYN-REVIEW-0005,Synthetic review topic 05,submission,normal,managing-editor,2026-07-01,2026-06-07
+SYN-REVIEW-0006,Synthetic review topic 06,approval,normal,managing-editor,2026-07-01,2026-06-11
+SYN-REVIEW-0007,Synthetic review topic 07,approval,normal,managing-editor,2026-07-01,2026-06-15
+SYN-REVIEW-0008,Synthetic review topic 08,approval,high,managing-editor,2026-07-01,2026-06-19
+SYN-REVIEW-0009,Synthetic review topic 09,approval,normal,managing-editor,2026-07-01,2026-06-23
+SYN-REVIEW-0010,Synthetic review topic 10,submission,normal,managing-editor,2026-07-01,2026-06-27
+SYN-REVIEW-0011,Synthetic review topic 11,approval,normal,managing-editor,2026-07-01,2026-07-01
+SYN-REVIEW-0012,Synthetic review topic 12,approval,high,managing-editor,2026-07-01,2026-07-05

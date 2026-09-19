@@ -1,0 +1,13 @@
+request_id,workflow_type,review_title,review_identifier,contact_author_name,created_date,due_date,current_status,completion_date,dashboard_export_status
+REQ-0001,copublication,Synthetic review topic 01,SYN-REVIEW-0001,Demo Author 02,2026-04-24,2026-05-22,generated,2026-05-09,exported
+REQ-0002,authorship-change,Synthetic review topic 02,SYN-REVIEW-0002,Demo Author 03,2026-04-28,2026-05-26,partially-approved,,exported
+REQ-0003,copublication,Synthetic review topic 03,SYN-REVIEW-0003,Demo Author 04,2026-05-02,2026-05-30,sent,,exported
+REQ-0004,authorship-change,Synthetic review topic 04,SYN-REVIEW-0004,Demo Author 05,2026-05-06,2026-06-03,cancelled,,exported
+REQ-0005,copublication,Synthetic review topic 05,SYN-REVIEW-0005,Demo Author 06,2026-05-10,2026-06-07,submitted,2026-05-31,exported
+REQ-0006,authorship-change,Synthetic review topic 06,SYN-REVIEW-0006,Demo Author 07,2026-05-14,2026-06-11,generated,2026-05-29,exported
+REQ-0007,copublication,Synthetic review topic 07,SYN-REVIEW-0007,Demo Author 08,2026-05-18,2026-06-15,partially-approved,,exported
+REQ-0008,authorship-change,Synthetic review topic 08,SYN-REVIEW-0008,Demo Author 09,2026-05-22,2026-06-19,sent,,exported
+REQ-0009,copublication,Synthetic review topic 09,SYN-REVIEW-0009,Demo Author 10,2026-05-26,2026-06-23,cancelled,,exported
+REQ-0010,authorship-change,Synthetic review topic 10,SYN-REVIEW-0010,Demo Author 11,2026-05-30,2026-06-27,submitted,2026-06-20,exported
+REQ-0011,copublication,Synthetic review topic 11,SYN-REVIEW-0011,Demo Author 12,2026-06-03,2026-07-01,generated,2026-06-18,exported
+REQ-0012,authorship-change,Synthetic review topic 12,SYN-REVIEW-0012,Demo Author 01,2026-06-07,2026-07-05,partially-approved,,exported

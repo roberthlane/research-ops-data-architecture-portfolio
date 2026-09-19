@@ -1,0 +1,6 @@
+document_id,request_id,workflow_type,template_version,generated_at,generated_by,document_status
+DOC-0001,REQ-0001,copublication,2026.07,2026-05-12,workflow-automation,needs-review
+DOC-0005,REQ-0005,copublication,2026.07,2026-05-28,workflow-automation,final
+DOC-0006,REQ-0006,authorship-change,2026.07,2026-06-01,workflow-automation,needs-review
+DOC-0010,REQ-0010,authorship-change,2026.07,2026-06-17,workflow-automation,final
+DOC-0011,REQ-0011,copublication,2026.07,2026-06-21,workflow-automation,needs-review

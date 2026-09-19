@@ -1,0 +1,13 @@
+request_id,workflow_type,review_title,review_identifier,total_authors,approved_authors,outstanding_authors,current_status,last_reminder_sent,reminder_due,waiting_on,last_exported_at
+REQ-0001,copublication,Synthetic review topic 01,SYN-REVIEW-0001,4,4,0,generated,,,,2026-07-01T00:00:00
+REQ-0002,authorship-change,Synthetic review topic 02,SYN-REVIEW-0002,5,3,2,partially-approved,2026-05-16,2026-05-23,authors,2026-07-01T00:00:00
+REQ-0003,copublication,Synthetic review topic 03,SYN-REVIEW-0003,3,1,2,sent,2026-05-20,2026-05-27,authors,2026-07-01T00:00:00
+REQ-0004,authorship-change,Synthetic review topic 04,SYN-REVIEW-0004,4,2,2,cancelled,2026-05-24,2026-05-31,authors,2026-07-01T00:00:00
+REQ-0005,copublication,Synthetic review topic 05,SYN-REVIEW-0005,5,5,0,submitted,,,,2026-07-01T00:00:00
+REQ-0006,authorship-change,Synthetic review topic 06,SYN-REVIEW-0006,3,3,0,generated,,,,2026-07-01T00:00:00
+REQ-0007,copublication,Synthetic review topic 07,SYN-REVIEW-0007,4,2,2,partially-approved,2026-06-05,2026-06-12,authors,2026-07-01T00:00:00
+REQ-0008,authorship-change,Synthetic review topic 08,SYN-REVIEW-0008,5,3,2,sent,2026-06-09,2026-06-16,authors,2026-07-01T00:00:00
+REQ-0009,copublication,Synthetic review topic 09,SYN-REVIEW-0009,3,1,2,cancelled,2026-06-13,2026-06-20,authors,2026-07-01T00:00:00
+REQ-0010,authorship-change,Synthetic review topic 10,SYN-REVIEW-0010,4,4,0,submitted,,,,2026-07-01T00:00:00
+REQ-0011,copublication,Synthetic review topic 11,SYN-REVIEW-0011,5,5,0,generated,,,,2026-07-01T00:00:00
+REQ-0012,authorship-change,Synthetic review topic 12,SYN-REVIEW-0012,3,1,2,partially-approved,2026-06-25,2026-07-02,authors,2026-07-01T00:00:00

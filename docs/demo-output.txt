@@ -1,0 +1,30 @@
+Research Ops: synthetic SQLite demonstration
+Fixture reference date: 2026-07-01
+PASS: 7 committed CSVs match generation and two runs match byte for byte
+  approval_events: 101
+  authors: 48
+  dashboard_exports: 12
+  generated_documents: 5
+  project_status: 12
+  reminder_events: 10
+  requests: 12
+PASS: no duplicate request natural keys (0 duplicates)
+PASS: authors reference existing requests (0 missing parents)
+PASS: events reference existing requests (0 missing parents)
+PASS: request status transitions are valid (0 invalid transitions)
+PASS: required lifecycle dates are present (0 incomplete rows)
+PASS: dashboard exports are current (0 stale exports)
+PASS: mart lifecycle fact count matches core requests (12/12)
+Lifecycle facts by status:
+  cancelled: 2 requests; 4 outstanding approvals
+  generated: 3 requests; 0 outstanding approvals
+  partially-approved: 3 requests; 6 outstanding approvals
+  sent: 2 requests; 4 outstanding approvals
+  submitted: 2 requests; 0 outstanding approvals
+Completed synthetic requests by workflow (not real performance):
+  authorship-change: 2 requests; mean 18.00 days
+  copublication: 3 requests; mean 17.00 days
+EXPECTED FAILURE detected: dashboard exports are current
+EXPECTED FAILURE detected: request status transitions are valid
+PASS: original fixture restored after negative examples
+Scope: SQLite subset only; no SQL Server execution, external services, or real records

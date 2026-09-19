@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+
+      - name: Run tests
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests
+
+      - name: Rebuild synthetic data and quality report
+        env:
+          PYTHONPATH: src
+        run: python -m research_ops_architecture.cli
+
+      - name: Reproduce demo evidence
+        env:
+          PYTHONPATH: src
+        run: python scripts/demo.py > docs/demo-output.txt
+
+      - name: Check generated artifacts are current
+        run: git diff --exit-code data/synthetic docs/quality-report.md docs/demo-output.txt

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "research-ops-data-architecture"
+version = "0.1.0"
+description = "Synthetic research operations data mart demonstrating SQL Server-style architecture, pipelines, and quality checks."
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+research-ops-arch = "research_ops_architecture.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
