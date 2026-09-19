@@ -21,6 +21,12 @@ schema/load/reporting/permission scripts, and checks:
 - Reader access to views/procedures and denial of direct staging/core table access.
 - Freshness at the exact two-calendar-day boundary.
 
-CI contains a dedicated engine job. The revised job has not yet executed at this
-revision; local validation currently covers SQLite, unit tests, formatting, typing,
-and package build. First-run DDL creates an empty schema; it is not a migration tool.
+The [validated CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35457514854)
+passed these scenarios on SQL Server 2022 Developer, version 16.0.4295.3,
+on amd64 Linux. Python 3.11 and 3.14 checks passed in the same run.
+This establishes container-engine behavior; Azure SQL deployment is not tested.
+
+Schema creation and mart loading explicitly set the session options required for
+[filtered indexes](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-index-transact-sql?view=sql-server-ver16#required-set-options-for-filtered-indexes),
+including QUOTED_IDENTIFIER, so they do not depend on client defaults.
+First-run DDL creates an empty schema; it is not a migration tool.

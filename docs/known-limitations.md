@@ -13,5 +13,5 @@
   timezone-naive in the synthetic CSVs; no cross-timezone ingestion is modeled.
 - T-SQL first-run schema scripts are not migrations. Core upserts do not propagate source
   deletions; event IDs are append-only. The calendar uses English month/weekday labels.
-- The revised SQL Server integration harness is prepared, but its first engine run is
-  pending. Parser checks and SQLite tests are not SQL Server execution evidence.
+- Engine validation covers SQL Server 2022 Developer on amd64 Linux using the synthetic
+  fixtures. Azure SQL deployment, other engine versions, and scale are not tested.

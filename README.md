@@ -56,9 +56,10 @@ are invented; dates are anchored to **2026-07-01** for repeatability.
 ## Scope
 
 This is a personal engineering work sample using [generated data](docs/synthetic-data-provenance.md).
-SQLite behavior is locally tested. SQL Server integration is configured in CI;
-the revised engine job has not yet run for this revision. The project has no
-production deployment or user-impact claims. [Remaining scope](docs/known-limitations.md).
+SQLite and SQL Server behavior are tested in CI; see the
+[passing Python and SQL Server run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35457514854).
+The project has no production deployment or user-impact claims.
+[Remaining scope](docs/known-limitations.md).
 
 ## Development and licence
 
