@@ -1,3 +1,13 @@
+-- Filtered indexes require these settings at creation and when indexed rows change.
+SET ANSI_NULLS ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET QUOTED_IDENTIFIER ON;
+SET NUMERIC_ROUNDABORT OFF;
+GO
+
 CREATE TABLE mart.dim_date (
     date_key         int         NOT NULL,
     calendar_date    date        NOT NULL,
@@ -145,4 +155,3 @@ CREATE TABLE mart.fact_dashboard_snapshot (
     CONSTRAINT fk_fact_snapshot_date FOREIGN KEY (snapshot_date_key) REFERENCES mart.dim_date(date_key)
 );
 GO
-
