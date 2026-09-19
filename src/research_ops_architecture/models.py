@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
+
+REFERENCE_DATE = date(2026, 7, 1)
 
 
 REQUEST_STATUSES = (
@@ -145,3 +148,28 @@ TABLES = {
     ),
 }
 
+
+# CSV cells are text; these columns may be blank. Everything else is required.
+OPTIONAL_COLUMNS = {
+    "requests": {"completion_date"},
+    "authors": {"date_sent", "date_approved", "last_reminder_sent", "reminder_due"},
+    "approval_events": {"author_approval_id", "approval_method", "comments"},
+    "reminder_events": {"next_reminder_due"},
+    "generated_documents": set(),
+    "dashboard_exports": {"last_reminder_sent", "reminder_due", "waiting_on"},
+    "project_status": set(),
+}
+DATE_COLUMNS = {
+    "requests": {"created_date", "due_date", "completion_date"},
+    "authors": {"date_sent", "date_approved", "last_reminder_sent", "reminder_due"},
+    "approval_events": {"event_timestamp"},
+    "reminder_events": {"sent_at", "next_reminder_due"},
+    "generated_documents": {"generated_at"},
+    "dashboard_exports": {"last_reminder_sent", "reminder_due", "last_exported_at"},
+    "project_status": {"status_as_of", "next_milestone_due"},
+}
+INTEGER_COLUMNS = {
+    "authors": {"display_order"},
+    "reminder_events": {"reminder_number"},
+    "dashboard_exports": {"total_authors", "approved_authors", "outstanding_authors"},
+}

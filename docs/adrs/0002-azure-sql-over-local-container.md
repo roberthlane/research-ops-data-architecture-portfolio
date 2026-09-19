@@ -1,12 +1,13 @@
-# ADR 0002: Keep the local demonstration independent of SQL Server
+# ADR: Separate local and engine validation
 
-Status: local SQLite path accepted; SQL Server runtime validation pending.
+## Context
 
-Use Python's SQLite module for a credential-free demonstration. Maintain T-SQL
-files to express an intended SQL Server/Azure SQL architecture without requiring
-reviewers to provision a server.
+Reviewers may not have SQL Server or a supported container host.
 
-This trades engine parity for easy local reproduction. SQLite executes only a
-subset of the larger design; SQL-file presence tests cannot validate SQL Server
-syntax or behavior. Future engine validation must follow a separate authorized
-plan and record its own evidence.
+## Decision
+
+Keep a dependency-free SQLite demonstration and a separate disposable SQL Server integration job.
+
+## Consequences
+
+SQLite tests do not establish T-SQL behavior; the engine job must provide its own passing evidence.

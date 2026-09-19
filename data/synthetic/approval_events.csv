@@ -1,102 +1,122 @@
 event_id,request_id,author_approval_id,event_type,event_timestamp,actor_role,approval_method,comments
 EVT-0001-01,REQ-0001,,draft,2026-04-24T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0001-02,REQ-0001,,ready-to-send,2026-04-27T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0001-03,REQ-0001,,sent,2026-04-30T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0001-04,REQ-0001,,approved,2026-05-03T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 4
-EVT-0001-05,REQ-0001,,generated,2026-05-06T00:00:00,author,,Synthetic lifecycle event 5
-EVT-0001-A01,REQ-0001,AUT-0001-01,author-approved,2026-05-07T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0001-A02,REQ-0001,AUT-0001-02,author-approved,2026-05-08T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0001-A03,REQ-0001,AUT-0001-03,author-approved,2026-05-09T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0001-A04,REQ-0001,AUT-0001-04,author-approved,2026-05-10T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0001-02,REQ-0001,,ready-to-send,2026-04-26T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0001-03,REQ-0001,,sent,2026-04-28T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0001-04,REQ-0001,,approved,2026-05-10T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 4
+EVT-0001-05,REQ-0001,,generated,2026-05-12T00:00:00,author,,Synthetic lifecycle event 5
+EVT-0001-A01-author-sent,REQ-0001,AUT-0001-01,author-sent,2026-04-28T00:00:00,system,,Synthetic author-level event
+EVT-0001-A01-author-approved,REQ-0001,AUT-0001-01,author-approved,2026-05-05T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0001-A02-author-sent,REQ-0001,AUT-0001-02,author-sent,2026-04-28T00:00:00,system,,Synthetic author-level event
+EVT-0001-A02-author-approved,REQ-0001,AUT-0001-02,author-approved,2026-05-06T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0001-A03-author-sent,REQ-0001,AUT-0001-03,author-sent,2026-04-28T00:00:00,system,,Synthetic author-level event
+EVT-0001-A03-author-approved,REQ-0001,AUT-0001-03,author-approved,2026-05-07T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0001-A04-author-sent,REQ-0001,AUT-0001-04,author-sent,2026-04-28T00:00:00,system,,Synthetic author-level event
+EVT-0001-A04-author-approved,REQ-0001,AUT-0001-04,author-approved,2026-05-08T00:00:00,author,checkbox-attestation,Synthetic author-level event
 EVT-0002-01,REQ-0002,,draft,2026-04-28T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0002-02,REQ-0002,,ready-to-send,2026-05-01T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0002-03,REQ-0002,,sent,2026-05-04T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0002-04,REQ-0002,,partially-approved,2026-05-07T00:00:00,author,,Synthetic lifecycle event 4
-EVT-0002-A01,REQ-0002,AUT-0002-01,author-approved,2026-05-11T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0002-A02,REQ-0002,AUT-0002-02,author-approved,2026-05-12T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0002-A03,REQ-0002,AUT-0002-03,author-approved,2026-05-13T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0002-A04,REQ-0002,AUT-0002-04,author-sent,2026-05-06T00:00:00,system,,Synthetic author-level event
-EVT-0002-A05,REQ-0002,AUT-0002-05,author-sent,2026-05-06T00:00:00,system,,Synthetic author-level event
+EVT-0002-02,REQ-0002,,ready-to-send,2026-04-30T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0002-03,REQ-0002,,sent,2026-05-02T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0002-04,REQ-0002,,partially-approved,2026-05-09T00:00:00,author,,Synthetic lifecycle event 4
+EVT-0002-A01-author-sent,REQ-0002,AUT-0002-01,author-sent,2026-05-02T00:00:00,system,,Synthetic author-level event
+EVT-0002-A01-author-approved,REQ-0002,AUT-0002-01,author-approved,2026-05-09T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0002-A02-author-sent,REQ-0002,AUT-0002-02,author-sent,2026-05-02T00:00:00,system,,Synthetic author-level event
+EVT-0002-A02-author-approved,REQ-0002,AUT-0002-02,author-approved,2026-05-10T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0002-A03-author-sent,REQ-0002,AUT-0002-03,author-sent,2026-05-02T00:00:00,system,,Synthetic author-level event
+EVT-0002-A03-author-approved,REQ-0002,AUT-0002-03,author-approved,2026-05-11T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0002-A04-author-sent,REQ-0002,AUT-0002-04,author-sent,2026-05-02T00:00:00,system,,Synthetic author-level event
+EVT-0002-A05-author-sent,REQ-0002,AUT-0002-05,author-sent,2026-05-02T00:00:00,system,,Synthetic author-level event
 EVT-0003-01,REQ-0003,,draft,2026-05-02T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0003-02,REQ-0003,,ready-to-send,2026-05-05T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0003-03,REQ-0003,,sent,2026-05-08T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0003-A01,REQ-0003,AUT-0003-01,author-approved,2026-05-15T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0003-A02,REQ-0003,AUT-0003-02,author-sent,2026-05-10T00:00:00,system,,Synthetic author-level event
-EVT-0003-A03,REQ-0003,AUT-0003-03,author-sent,2026-05-10T00:00:00,system,,Synthetic author-level event
+EVT-0003-02,REQ-0003,,ready-to-send,2026-05-04T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0003-03,REQ-0003,,sent,2026-05-06T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0003-A01-author-sent,REQ-0003,AUT-0003-01,author-sent,2026-05-06T00:00:00,system,,Synthetic author-level event
+EVT-0003-A02-author-sent,REQ-0003,AUT-0003-02,author-sent,2026-05-06T00:00:00,system,,Synthetic author-level event
+EVT-0003-A03-author-sent,REQ-0003,AUT-0003-03,author-sent,2026-05-06T00:00:00,system,,Synthetic author-level event
 EVT-0004-01,REQ-0004,,draft,2026-05-06T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0004-02,REQ-0004,,ready-to-send,2026-05-09T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0004-03,REQ-0004,,cancelled,2026-05-12T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0004-A01,REQ-0004,AUT-0004-01,author-approved,2026-05-19T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0004-A02,REQ-0004,AUT-0004-02,author-approved,2026-05-20T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0004-A03,REQ-0004,AUT-0004-03,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
-EVT-0004-A04,REQ-0004,AUT-0004-04,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
+EVT-0004-02,REQ-0004,,ready-to-send,2026-05-08T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0004-03,REQ-0004,,cancelled,2026-05-09T00:00:00,author,,Synthetic lifecycle event 3
 EVT-0005-01,REQ-0005,,draft,2026-05-10T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0005-02,REQ-0005,,ready-to-send,2026-05-13T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0005-03,REQ-0005,,sent,2026-05-16T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0005-04,REQ-0005,,partially-approved,2026-05-19T00:00:00,author,,Synthetic lifecycle event 4
-EVT-0005-05,REQ-0005,,approved,2026-05-22T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 5
-EVT-0005-06,REQ-0005,,generated,2026-05-25T00:00:00,author,,Synthetic lifecycle event 6
-EVT-0005-07,REQ-0005,,submitted,2026-05-28T00:00:00,author,,Synthetic lifecycle event 7
-EVT-0005-A01,REQ-0005,AUT-0005-01,author-approved,2026-05-23T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0005-A02,REQ-0005,AUT-0005-02,author-approved,2026-05-24T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0005-A03,REQ-0005,AUT-0005-03,author-approved,2026-05-25T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0005-A04,REQ-0005,AUT-0005-04,author-approved,2026-05-26T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0005-A05,REQ-0005,AUT-0005-05,author-approved,2026-05-27T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0005-02,REQ-0005,,ready-to-send,2026-05-12T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0005-03,REQ-0005,,sent,2026-05-14T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0005-04,REQ-0005,,partially-approved,2026-05-21T00:00:00,author,,Synthetic lifecycle event 4
+EVT-0005-05,REQ-0005,,approved,2026-05-26T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 5
+EVT-0005-06,REQ-0005,,generated,2026-05-28T00:00:00,author,,Synthetic lifecycle event 6
+EVT-0005-07,REQ-0005,,submitted,2026-05-30T00:00:00,author,,Synthetic lifecycle event 7
+EVT-0005-A01-author-sent,REQ-0005,AUT-0005-01,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
+EVT-0005-A01-author-approved,REQ-0005,AUT-0005-01,author-approved,2026-05-21T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0005-A02-author-sent,REQ-0005,AUT-0005-02,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
+EVT-0005-A02-author-approved,REQ-0005,AUT-0005-02,author-approved,2026-05-22T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0005-A03-author-sent,REQ-0005,AUT-0005-03,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
+EVT-0005-A03-author-approved,REQ-0005,AUT-0005-03,author-approved,2026-05-23T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0005-A04-author-sent,REQ-0005,AUT-0005-04,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
+EVT-0005-A04-author-approved,REQ-0005,AUT-0005-04,author-approved,2026-05-24T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0005-A05-author-sent,REQ-0005,AUT-0005-05,author-sent,2026-05-14T00:00:00,system,,Synthetic author-level event
+EVT-0005-A05-author-approved,REQ-0005,AUT-0005-05,author-approved,2026-05-25T00:00:00,author,checkbox-attestation,Synthetic author-level event
 EVT-0006-01,REQ-0006,,draft,2026-05-14T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0006-02,REQ-0006,,ready-to-send,2026-05-17T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0006-03,REQ-0006,,sent,2026-05-20T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0006-04,REQ-0006,,approved,2026-05-23T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 4
-EVT-0006-05,REQ-0006,,generated,2026-05-26T00:00:00,author,,Synthetic lifecycle event 5
-EVT-0006-A01,REQ-0006,AUT-0006-01,author-approved,2026-05-27T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0006-A02,REQ-0006,AUT-0006-02,author-approved,2026-05-28T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0006-A03,REQ-0006,AUT-0006-03,author-approved,2026-05-29T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0006-02,REQ-0006,,ready-to-send,2026-05-16T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0006-03,REQ-0006,,sent,2026-05-18T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0006-04,REQ-0006,,approved,2026-05-30T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 4
+EVT-0006-05,REQ-0006,,generated,2026-06-01T00:00:00,author,,Synthetic lifecycle event 5
+EVT-0006-A01-author-sent,REQ-0006,AUT-0006-01,author-sent,2026-05-18T00:00:00,system,,Synthetic author-level event
+EVT-0006-A01-author-approved,REQ-0006,AUT-0006-01,author-approved,2026-05-25T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0006-A02-author-sent,REQ-0006,AUT-0006-02,author-sent,2026-05-18T00:00:00,system,,Synthetic author-level event
+EVT-0006-A02-author-approved,REQ-0006,AUT-0006-02,author-approved,2026-05-26T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0006-A03-author-sent,REQ-0006,AUT-0006-03,author-sent,2026-05-18T00:00:00,system,,Synthetic author-level event
+EVT-0006-A03-author-approved,REQ-0006,AUT-0006-03,author-approved,2026-05-27T00:00:00,author,checkbox-attestation,Synthetic author-level event
 EVT-0007-01,REQ-0007,,draft,2026-05-18T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0007-02,REQ-0007,,ready-to-send,2026-05-21T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0007-03,REQ-0007,,sent,2026-05-24T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0007-04,REQ-0007,,partially-approved,2026-05-27T00:00:00,author,,Synthetic lifecycle event 4
-EVT-0007-A01,REQ-0007,AUT-0007-01,author-approved,2026-05-31T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0007-A02,REQ-0007,AUT-0007-02,author-approved,2026-06-01T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0007-A03,REQ-0007,AUT-0007-03,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
-EVT-0007-A04,REQ-0007,AUT-0007-04,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
+EVT-0007-02,REQ-0007,,ready-to-send,2026-05-20T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0007-03,REQ-0007,,sent,2026-05-22T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0007-04,REQ-0007,,partially-approved,2026-05-29T00:00:00,author,,Synthetic lifecycle event 4
+EVT-0007-A01-author-sent,REQ-0007,AUT-0007-01,author-sent,2026-05-22T00:00:00,system,,Synthetic author-level event
+EVT-0007-A01-author-approved,REQ-0007,AUT-0007-01,author-approved,2026-05-29T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0007-A02-author-sent,REQ-0007,AUT-0007-02,author-sent,2026-05-22T00:00:00,system,,Synthetic author-level event
+EVT-0007-A02-author-approved,REQ-0007,AUT-0007-02,author-approved,2026-05-30T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0007-A03-author-sent,REQ-0007,AUT-0007-03,author-sent,2026-05-22T00:00:00,system,,Synthetic author-level event
+EVT-0007-A04-author-sent,REQ-0007,AUT-0007-04,author-sent,2026-05-22T00:00:00,system,,Synthetic author-level event
 EVT-0008-01,REQ-0008,,draft,2026-05-22T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0008-02,REQ-0008,,ready-to-send,2026-05-25T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0008-03,REQ-0008,,sent,2026-05-28T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0008-A01,REQ-0008,AUT-0008-01,author-approved,2026-06-04T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0008-A02,REQ-0008,AUT-0008-02,author-approved,2026-06-05T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0008-A03,REQ-0008,AUT-0008-03,author-approved,2026-06-06T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0008-A04,REQ-0008,AUT-0008-04,author-sent,2026-05-30T00:00:00,system,,Synthetic author-level event
-EVT-0008-A05,REQ-0008,AUT-0008-05,author-sent,2026-05-30T00:00:00,system,,Synthetic author-level event
+EVT-0008-02,REQ-0008,,ready-to-send,2026-05-24T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0008-03,REQ-0008,,sent,2026-05-26T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0008-A01-author-sent,REQ-0008,AUT-0008-01,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
+EVT-0008-A02-author-sent,REQ-0008,AUT-0008-02,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
+EVT-0008-A03-author-sent,REQ-0008,AUT-0008-03,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
+EVT-0008-A04-author-sent,REQ-0008,AUT-0008-04,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
+EVT-0008-A05-author-sent,REQ-0008,AUT-0008-05,author-sent,2026-05-26T00:00:00,system,,Synthetic author-level event
 EVT-0009-01,REQ-0009,,draft,2026-05-26T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0009-02,REQ-0009,,ready-to-send,2026-05-29T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0009-03,REQ-0009,,cancelled,2026-06-01T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0009-A01,REQ-0009,AUT-0009-01,author-approved,2026-06-08T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0009-A02,REQ-0009,AUT-0009-02,author-sent,2026-06-03T00:00:00,system,,Synthetic author-level event
-EVT-0009-A03,REQ-0009,AUT-0009-03,author-sent,2026-06-03T00:00:00,system,,Synthetic author-level event
+EVT-0009-02,REQ-0009,,ready-to-send,2026-05-28T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0009-03,REQ-0009,,cancelled,2026-05-29T00:00:00,author,,Synthetic lifecycle event 3
 EVT-0010-01,REQ-0010,,draft,2026-05-30T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0010-02,REQ-0010,,ready-to-send,2026-06-02T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0010-03,REQ-0010,,sent,2026-06-05T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0010-04,REQ-0010,,partially-approved,2026-06-08T00:00:00,author,,Synthetic lifecycle event 4
-EVT-0010-05,REQ-0010,,approved,2026-06-11T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 5
-EVT-0010-06,REQ-0010,,generated,2026-06-14T00:00:00,author,,Synthetic lifecycle event 6
-EVT-0010-07,REQ-0010,,submitted,2026-06-17T00:00:00,author,,Synthetic lifecycle event 7
-EVT-0010-A01,REQ-0010,AUT-0010-01,author-approved,2026-06-12T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0010-A02,REQ-0010,AUT-0010-02,author-approved,2026-06-13T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0010-A03,REQ-0010,AUT-0010-03,author-approved,2026-06-14T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0010-A04,REQ-0010,AUT-0010-04,author-approved,2026-06-15T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0010-02,REQ-0010,,ready-to-send,2026-06-01T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0010-03,REQ-0010,,sent,2026-06-03T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0010-04,REQ-0010,,partially-approved,2026-06-10T00:00:00,author,,Synthetic lifecycle event 4
+EVT-0010-05,REQ-0010,,approved,2026-06-15T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 5
+EVT-0010-06,REQ-0010,,generated,2026-06-17T00:00:00,author,,Synthetic lifecycle event 6
+EVT-0010-07,REQ-0010,,submitted,2026-06-19T00:00:00,author,,Synthetic lifecycle event 7
+EVT-0010-A01-author-sent,REQ-0010,AUT-0010-01,author-sent,2026-06-03T00:00:00,system,,Synthetic author-level event
+EVT-0010-A01-author-approved,REQ-0010,AUT-0010-01,author-approved,2026-06-10T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0010-A02-author-sent,REQ-0010,AUT-0010-02,author-sent,2026-06-03T00:00:00,system,,Synthetic author-level event
+EVT-0010-A02-author-approved,REQ-0010,AUT-0010-02,author-approved,2026-06-11T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0010-A03-author-sent,REQ-0010,AUT-0010-03,author-sent,2026-06-03T00:00:00,system,,Synthetic author-level event
+EVT-0010-A03-author-approved,REQ-0010,AUT-0010-03,author-approved,2026-06-12T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0010-A04-author-sent,REQ-0010,AUT-0010-04,author-sent,2026-06-03T00:00:00,system,,Synthetic author-level event
+EVT-0010-A04-author-approved,REQ-0010,AUT-0010-04,author-approved,2026-06-13T00:00:00,author,checkbox-attestation,Synthetic author-level event
 EVT-0011-01,REQ-0011,,draft,2026-06-03T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0011-02,REQ-0011,,ready-to-send,2026-06-06T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0011-03,REQ-0011,,sent,2026-06-09T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0011-04,REQ-0011,,approved,2026-06-12T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 4
-EVT-0011-05,REQ-0011,,generated,2026-06-15T00:00:00,author,,Synthetic lifecycle event 5
-EVT-0011-A01,REQ-0011,AUT-0011-01,author-approved,2026-06-16T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0011-A02,REQ-0011,AUT-0011-02,author-approved,2026-06-17T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0011-A03,REQ-0011,AUT-0011-03,author-approved,2026-06-18T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0011-A04,REQ-0011,AUT-0011-04,author-approved,2026-06-19T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0011-A05,REQ-0011,AUT-0011-05,author-approved,2026-06-20T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0011-02,REQ-0011,,ready-to-send,2026-06-05T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0011-03,REQ-0011,,sent,2026-06-07T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0011-04,REQ-0011,,approved,2026-06-19T00:00:00,author,checkbox-attestation,Synthetic lifecycle event 4
+EVT-0011-05,REQ-0011,,generated,2026-06-21T00:00:00,author,,Synthetic lifecycle event 5
+EVT-0011-A01-author-sent,REQ-0011,AUT-0011-01,author-sent,2026-06-07T00:00:00,system,,Synthetic author-level event
+EVT-0011-A01-author-approved,REQ-0011,AUT-0011-01,author-approved,2026-06-14T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0011-A02-author-sent,REQ-0011,AUT-0011-02,author-sent,2026-06-07T00:00:00,system,,Synthetic author-level event
+EVT-0011-A02-author-approved,REQ-0011,AUT-0011-02,author-approved,2026-06-15T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0011-A03-author-sent,REQ-0011,AUT-0011-03,author-sent,2026-06-07T00:00:00,system,,Synthetic author-level event
+EVT-0011-A03-author-approved,REQ-0011,AUT-0011-03,author-approved,2026-06-16T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0011-A04-author-sent,REQ-0011,AUT-0011-04,author-sent,2026-06-07T00:00:00,system,,Synthetic author-level event
+EVT-0011-A04-author-approved,REQ-0011,AUT-0011-04,author-approved,2026-06-17T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0011-A05-author-sent,REQ-0011,AUT-0011-05,author-sent,2026-06-07T00:00:00,system,,Synthetic author-level event
+EVT-0011-A05-author-approved,REQ-0011,AUT-0011-05,author-approved,2026-06-18T00:00:00,author,checkbox-attestation,Synthetic author-level event
 EVT-0012-01,REQ-0012,,draft,2026-06-07T00:00:00,managing-editor,,Synthetic lifecycle event 1
-EVT-0012-02,REQ-0012,,ready-to-send,2026-06-10T00:00:00,managing-editor,,Synthetic lifecycle event 2
-EVT-0012-03,REQ-0012,,sent,2026-06-13T00:00:00,author,,Synthetic lifecycle event 3
-EVT-0012-04,REQ-0012,,partially-approved,2026-06-16T00:00:00,author,,Synthetic lifecycle event 4
-EVT-0012-A01,REQ-0012,AUT-0012-01,author-approved,2026-06-20T00:00:00,author,checkbox-attestation,Synthetic author-level event
-EVT-0012-A02,REQ-0012,AUT-0012-02,author-sent,2026-06-15T00:00:00,system,,Synthetic author-level event
-EVT-0012-A03,REQ-0012,AUT-0012-03,author-sent,2026-06-15T00:00:00,system,,Synthetic author-level event
+EVT-0012-02,REQ-0012,,ready-to-send,2026-06-09T00:00:00,managing-editor,,Synthetic lifecycle event 2
+EVT-0012-03,REQ-0012,,sent,2026-06-11T00:00:00,author,,Synthetic lifecycle event 3
+EVT-0012-04,REQ-0012,,partially-approved,2026-06-18T00:00:00,author,,Synthetic lifecycle event 4
+EVT-0012-A01-author-sent,REQ-0012,AUT-0012-01,author-sent,2026-06-11T00:00:00,system,,Synthetic author-level event
+EVT-0012-A01-author-approved,REQ-0012,AUT-0012-01,author-approved,2026-06-18T00:00:00,author,checkbox-attestation,Synthetic author-level event
+EVT-0012-A02-author-sent,REQ-0012,AUT-0012-02,author-sent,2026-06-11T00:00:00,system,,Synthetic author-level event
+EVT-0012-A03-author-sent,REQ-0012,AUT-0012-03,author-sent,2026-06-11T00:00:00,system,,Synthetic author-level event

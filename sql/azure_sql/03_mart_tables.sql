@@ -59,6 +59,11 @@ CREATE TABLE mart.dim_author (
 );
 GO
 
+-- At most one open version per author approval.
+CREATE UNIQUE INDEX ux_dim_author_current ON mart.dim_author(author_approval_id)
+WHERE is_current = 1;
+GO
+
 CREATE TABLE mart.fact_approval_event (
     approval_event_key bigint IDENTITY(1,1) NOT NULL,
     event_id varchar(40) NOT NULL,
@@ -89,7 +94,6 @@ CREATE TABLE mart.fact_request_lifecycle (
     due_date_key int NOT NULL,
     completion_date_key int NULL,
     cycle_time_days int NULL,
-    days_until_due int NULL,
     total_authors int NOT NULL,
     approved_authors int NOT NULL,
     outstanding_authors int NOT NULL,

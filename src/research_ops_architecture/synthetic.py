@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from .models import TABLES, WORKFLOW_TYPES
+from .models import REFERENCE_DATE, TABLES, WORKFLOW_TYPES
 
 
 @dataclass(frozen=True)
@@ -36,7 +36,7 @@ def build_synthetic_dataset(output_dir: str | Path, today: date | None = None) -
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
-    today = today or date(2026, 7, 1)
+    today = today or REFERENCE_DATE
 
     rows = _build_rows(today)
     row_counts = {}
@@ -62,13 +62,37 @@ def _build_rows(today: date) -> dict[str, list[dict[str, object]]]:
         created = today - timedelta(days=72 - index * 4)
         path = STATUS_PATHS[index % len(STATUS_PATHS)]
         current_status = path[-1]
-        completion_date = created + timedelta(days=len(path) * 3) if current_status in {"generated", "submitted"} else ""
+        event_days = {
+            "draft": 0,
+            "ready-to-send": 2,
+            "sent": 4,
+            "partially-approved": 11,
+            "approved": 16,
+            "generated": 18,
+            "submitted": 20,
+            "cancelled": 3,
+        }
+        completion_date = (
+            created + timedelta(days=event_days[current_status])
+            if current_status in {"generated", "submitted"}
+            else None
+        )
         due_date = created + timedelta(days=28)
         total_authors = 3 + (index % 3)
-        approved_authors = total_authors if current_status in {"approved", "generated", "submitted"} else max(0, total_authors - 2)
+        approved_authors = (
+            total_authors
+            if current_status in {"approved", "generated", "submitted"}
+            else total_authors - 2
+            if current_status == "partially-approved"
+            else 0
+        )
         outstanding_authors = total_authors - approved_authors
-        last_reminder = created + timedelta(days=18) if outstanding_authors else ""
-        reminder_due = created + timedelta(days=25) if outstanding_authors else ""
+        last_reminder = (
+            created + timedelta(days=18)
+            if current_status in {"sent", "partially-approved"}
+            else None
+        )
+        reminder_due = created + timedelta(days=25) if last_reminder else None
 
         requests.append(
             {
@@ -76,12 +100,14 @@ def _build_rows(today: date) -> dict[str, list[dict[str, object]]]:
                 "workflow_type": workflow_type,
                 "review_title": title,
                 "review_identifier": review_identifier,
-                "contact_author_name": AUTHOR_NAMES[index % len(AUTHOR_NAMES)],
+                "contact_author_name": AUTHOR_NAMES[(index + 1) % len(AUTHOR_NAMES)],
                 "created_date": created.isoformat(),
                 "due_date": due_date.isoformat(),
                 "current_status": current_status,
                 "completion_date": _iso(completion_date),
-                "dashboard_export_status": "exported" if current_status != "draft" else "not-exported",
+                "dashboard_export_status": "exported"
+                if current_status != "draft"
+                else "not-exported",
             }
         )
 
@@ -93,7 +119,7 @@ def _build_rows(today: date) -> dict[str, list[dict[str, object]]]:
                     "author_approval_id": "",
                     "event_type": status,
                     "event_timestamp": datetime.combine(
-                        created + timedelta(days=(event_number - 1) * 3),
+                        created + timedelta(days=event_days[status]),
                         datetime.min.time(),
                     ).isoformat(timespec="seconds"),
                     "actor_role": "managing-editor" if event_number <= 2 else "author",
@@ -105,9 +131,9 @@ def _build_rows(today: date) -> dict[str, list[dict[str, object]]]:
         for author_index in range(1, total_authors + 1):
             author_id = f"AUT-{index:04d}-{author_index:02d}"
             approved = author_index <= approved_authors
-            date_sent = created + timedelta(days=8)
-            date_approved = created + timedelta(days=12 + author_index) if approved else ""
-            author_status = "approved" if approved else ("needs-follow-up" if current_status == "partially-approved" else "sent")
+            date_sent = created + timedelta(days=4) if current_status != "cancelled" else None
+            date_approved = created + timedelta(days=10 + author_index) if approved else None
+            author_status = "approved" if approved else "sent" if date_sent else "pending"
             authors.append(
                 {
                     "author_approval_id": author_id,
@@ -116,27 +142,33 @@ def _build_rows(today: date) -> dict[str, list[dict[str, object]]]:
                     "author_role": "contact author" if author_index == 1 else "co-author",
                     "display_order": author_index,
                     "approval_status": author_status,
-                    "date_sent": date_sent.isoformat(),
+                    "date_sent": _iso(date_sent),
                     "date_approved": _iso(date_approved),
-                    "last_reminder_sent": _iso(last_reminder),
-                    "reminder_due": _iso(reminder_due),
+                    "last_reminder_sent": _iso(last_reminder if not approved else None),
+                    "reminder_due": _iso(reminder_due if not approved else None),
                 }
             )
-            approval_events.append(
-                {
-                    "event_id": f"EVT-{index:04d}-A{author_index:02d}",
-                    "request_id": request_id,
-                    "author_approval_id": author_id,
-                    "event_type": "author-approved" if approved else "author-sent",
-                    "event_timestamp": datetime.combine(
-                        date_approved if approved else date_sent,
-                        datetime.min.time(),
-                    ).isoformat(timespec="seconds"),
-                    "actor_role": "author" if approved else "system",
-                    "approval_method": "checkbox-attestation" if approved else "",
-                    "comments": "Synthetic author-level event",
-                }
-            )
+            for event_type, occurred in [
+                ("author-sent", date_sent),
+                ("author-approved", date_approved),
+            ]:
+                if occurred is not None:
+                    approval_events.append(
+                        {
+                            "event_id": f"EVT-{index:04d}-A{author_index:02d}-{event_type}",
+                            "request_id": request_id,
+                            "author_approval_id": author_id,
+                            "event_type": event_type,
+                            "event_timestamp": datetime.combine(
+                                occurred, datetime.min.time()
+                            ).isoformat(timespec="seconds"),
+                            "actor_role": "author" if event_type == "author-approved" else "system",
+                            "approval_method": "checkbox-attestation"
+                            if event_type == "author-approved"
+                            else None,
+                            "comments": "Synthetic author-level event",
+                        }
+                    )
             if not approved and current_status not in {"draft", "cancelled"}:
                 reminder_events.append(
                     {
@@ -178,15 +210,21 @@ def _build_rows(today: date) -> dict[str, list[dict[str, object]]]:
                 "current_status": current_status,
                 "last_reminder_sent": _iso(last_reminder),
                 "reminder_due": _iso(reminder_due),
-                "waiting_on": "authors" if outstanding_authors else "",
-                "last_exported_at": datetime.combine(today, datetime.min.time()).isoformat(timespec="seconds"),
+                "waiting_on": "authors"
+                if outstanding_authors and current_status != "cancelled"
+                else None,
+                "last_exported_at": datetime.combine(today, datetime.min.time()).isoformat(
+                    timespec="seconds"
+                ),
             }
         )
         project_status.append(
             {
                 "review_identifier": review_identifier,
                 "review_title": title,
-                "project_phase": "approval" if current_status not in {"submitted", "archived"} else "submission",
+                "project_phase": "approval"
+                if current_status not in {"submitted", "archived"}
+                else "submission",
                 "priority": "high" if index % 4 == 0 else "normal",
                 "owner_role": "managing-editor",
                 "status_as_of": today.isoformat(),
@@ -216,4 +254,3 @@ def _iso(value: object) -> str:
     if isinstance(value, (date, datetime)):
         return value.isoformat()
     return str(value or "")
-

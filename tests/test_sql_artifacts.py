@@ -3,8 +3,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-
-SQL_DIR = Path("sql/azure_sql")
+SQL_DIR = Path(__file__).resolve().parents[1] / "sql/azure_sql"
 
 
 class SqlArtifactTests(unittest.TestCase):
@@ -39,7 +38,11 @@ class SqlArtifactTests(unittest.TestCase):
 
     def test_views_procs_and_indexes_are_declared(self) -> None:
         reporting_sql = (SQL_DIR / "06_views_and_procs.sql").read_text(encoding="utf-8").casefold()
-        index_sql = (SQL_DIR / "07_indexes_security_backup_notes.sql").read_text(encoding="utf-8").casefold()
+        index_sql = (
+            (SQL_DIR / "07_indexes_security_backup_notes.sql")
+            .read_text(encoding="utf-8")
+            .casefold()
+        )
 
         self.assertIn("create or alter view rpt.vw_open_approval_queue", reporting_sql)
         self.assertIn("create or alter procedure rpt.usp_request_lifecycle_summary", reporting_sql)
@@ -49,4 +52,3 @@ class SqlArtifactTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

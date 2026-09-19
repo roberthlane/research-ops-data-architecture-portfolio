@@ -1,36 +1,22 @@
 # Lineage
 
-## Executed local path
+The generator defines seven CSV extracts. `models.py` defines their exact column
+order; malformed headers or row widths produce a failure report. Validation checks
+keys, fields, references, vocabularies, request paths, author/contact state, chronology,
+export reconciliation, and freshness before core loading.
 
-```mermaid
-flowchart TD
-    G[Deterministic Python generator] --> S[Seven CSV files and staging tables]
-    S --> R[core_request]
-    S --> A[core_author_approval]
-    S --> E[core_approval_event]
-    R --> F[mart_fact_request_lifecycle]
-    S -->|dashboard counts| F
-    R --> D[mart_dim_status]
-    A --> H[mart_dim_author initial rows]
-    F --> O[Console summaries]
-```
+| Input | Local destination | Reporting use |
+| --- | --- | --- |
+| requests.csv | stg_requests → core_request | Lifecycle identity, dates, status |
+| authors.csv | stg_authors → core_author_approval | Lifecycle counts; initial author dimension |
+| approval_events.csv | stg_approval_events → core_approval_event | Lifecycle and author-event validation |
+| dashboard_exports.csv | stg_dashboard_exports | Reconciliation/freshness only; not the fact's source |
+| reminder_events.csv | stg_reminder_events | Contract validation; T-SQL also loads core reminders |
+| generated_documents.csv | stg_generated_documents | Generation chronology; T-SQL also loads core metadata |
+| project_status.csv | stg_project_status | Context-only staging |
 
-Reminders, generated-document metadata, and project status are loaded to staging
-but not transformed to SQLite core/facts. Request and author events share the
-approval-event table, with nullable author-approval IDs distinguishing request events.
-The diagram describes the executable subset, not all T-SQL declarations.
-
-## T-SQL design
-
-Script 04 loads request/author/event/reminder/document core entities and lookup
-tables. Script 05 loads dimensions and the lifecycle fact. Other declared fact
-tables have no loaders. Reporting reminder counts join core reminders directly,
-not `mart.fact_reminder`. See the implementation matrix and limitations.
-
-## Quality gates
-
-Checks examine duplicate request keys, parent requests for authors/events,
-request status transitions, required lifecycle dates, dashboard freshness, and
-core/lifecycle fact counts. They run after load/build. Foreign-key and NOT NULL
-errors may stop loading before these checks. “Summary” is a data shape, not a
-privacy clearance for future real records.
+Post-build reconciliation compares each fact's request key and author counts with
+core records. It detects missing/extra facts and wrong counts. SQL reporting computes
+relative deadlines at query time and obtains terminal-state meaning from the shared
+status lookup. The reminder view reports current approval associations, not an effect
+attributed to sending reminders.

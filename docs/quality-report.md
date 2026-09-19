@@ -1,9 +1,12 @@
 # Data Quality Report
 
-- PASS: no duplicate request natural keys - 0 duplicates
-- PASS: authors reference existing requests - 0 missing parents
-- PASS: events reference existing requests - 0 missing parents
-- PASS: request status transitions are valid - 0 invalid transitions
-- PASS: required lifecycle dates are present - 0 incomplete rows
-- PASS: dashboard exports are current - 0 stale exports
-- PASS: mart lifecycle fact count matches core requests - 12/12
+- PASS: natural keys are present and unique - 0 violations
+- PASS: required fields and values are valid - 0 violations
+- PASS: references resolve within requests - 0 violations
+- PASS: controlled vocabularies are valid - 0 violations
+- PASS: request lifecycle paths match current status - 0 violations
+- PASS: contact authors and aggregate states agree - 0 violations
+- PASS: lifecycle chronology is consistent - 0 violations
+- PASS: dashboard summaries match source records - 0 violations
+- PASS: dashboard exports are current - 0 violations
+- PASS: mart lifecycle facts match core - 12/12 requests; counts match

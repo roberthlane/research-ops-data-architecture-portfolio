@@ -1,47 +1,33 @@
-# Case study: a reproducible workflow data sample
+# Case study: approval workflow reporting
 
-## Problem and approach
+A hypothetical research team wants to know which requests await authors, how long
+completed workflows take, and whether dashboard extracts agree with source records.
+The project turns that problem into explicit grains, keys, lifecycle rules, and
+reproducible failure cases using entirely invented inputs.
 
-A hypothetical research team wants to understand request status, pending approvals,
-and workflow duration. This project explores how to separate source-shaped records,
-relational entities, and reporting facts without bringing real operational records
-into a portfolio repository.
+## Decisions
 
-The executable sample generates seven CSVs and loads them into a fresh SQLite
-database. It checks specific integrity and lifecycle conditions and builds a
-one-row-per-request reporting fact. The companion T-SQL files explore a larger
-staging/core/mart/reporting design. They are not a deployed warehouse.
+Raw staging preserves invalid inputs long enough to explain why they fail. Constrained
+core tables protect relational entities. A one-row-per-request lifecycle fact derives
+counts from core authors, while dashboard exports provide an independent reconciliation
+surface. The CLI writes failure reports before stopping; tests exercise actual input files.
 
-## Decisions a reviewer can inspect
+SQLite makes the example easy to run without infrastructure. T-SQL expresses a larger
+schema and daily versioning policy; a separate engine test checks behavior that SQLite
+cannot establish. Same-day author updates coalesce into one daily snapshot, avoiding
+ambiguous overlapping intervals while event rows remain the place for detailed history.
 
-- Fixed-date, invented fixtures make regeneration reviewable in a diff and CI.
-- Temporary CSVs and an in-memory database keep the demo free of cloud setup.
-- Keys and foreign keys reject some malformed records during loading; additional
-  quality checks examine lifecycle transitions, freshness, and fact counts.
-- A lifecycle fact makes status summaries simple, but exported counts can disagree
-  with source author rows. This sample does not validate all such discrepancies.
-- T-SQL and SQLite are maintained separately. That improves local access but creates
-  a parity gap; the implementation matrix makes the gap explicit.
+## Walkthrough
 
-## Interview walkthrough
+1. Run the demo and trace one request from CSV through core into its lifecycle fact.
+2. Change a contact name, count, status, or timestamp in a scratch CSV and run the CLI
+   with `--skip-generate`; inspect the failure report and exit status.
+3. Explain why counts come from core rather than dashboard staging, and why the fact
+   reconciliation compares values as well as row counts.
+4. Review the SCD load-day policy and the engine tests for unchanged, later-day,
+   same-day, and backdated loads.
+5. Discuss one next requirement: persistent/incremental loading, late-arriving history,
+   source deletions, or measured scale. Each changes the current design contract.
 
-1. Run the tests and `scripts/demo.py`. Explain why the date is fixed and how
-   committed fixtures are checked against fresh generation.
-2. Trace `SYN-REVIEW-0001` through requests, authors, events, and lifecycle fact.
-   Explain the grain and why author-approval IDs are request-specific.
-3. Inspect the deliberately stale export and invalid transition in the demo.
-   Explain which validator catches each, and which malformed inputs instead
-   raise loader exceptions before a quality report can be written.
-4. Discuss one limitation: fresh rebuilds are not incremental upserts; the SCD
-   example does not establish historical correctness; or equal row counts do not
-   prove equal content.
-5. Before using first-person employment claims, identify the parts you personally
-   designed, reviewed, tested, or changed. Repository presence alone cannot do that.
-
-## Evidence and next validation boundary
-
-The recorded demo and unit tests are local software evidence on tiny synthetic
-fixtures. The next engine-specific validation would run the T-SQL in a disposable,
-authorized SQL Server environment with explicit data import, rerun tests, and
-SCD boundary cases. That work has not been performed. No scale, user adoption,
-clinical effectiveness, time saving, or deployment outcome is claimed.
+The evidence establishes software behavior on generated fixtures. It makes no claim
+of organizational adoption or operational savings.

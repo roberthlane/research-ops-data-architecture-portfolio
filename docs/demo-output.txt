@@ -1,30 +1,33 @@
 Research Ops: synthetic SQLite demonstration
 Fixture reference date: 2026-07-01
 PASS: 7 committed CSVs match generation and two runs match byte for byte
-  approval_events: 101
+  approval_events: 121
   authors: 48
   dashboard_exports: 12
   generated_documents: 5
   project_status: 12
-  reminder_events: 10
+  reminder_events: 14
   requests: 12
-PASS: no duplicate request natural keys (0 duplicates)
-PASS: authors reference existing requests (0 missing parents)
-PASS: events reference existing requests (0 missing parents)
-PASS: request status transitions are valid (0 invalid transitions)
-PASS: required lifecycle dates are present (0 incomplete rows)
-PASS: dashboard exports are current (0 stale exports)
-PASS: mart lifecycle fact count matches core requests (12/12)
+PASS: natural keys are present and unique (0 violations)
+PASS: required fields and values are valid (0 violations)
+PASS: references resolve within requests (0 violations)
+PASS: controlled vocabularies are valid (0 violations)
+PASS: request lifecycle paths match current status (0 violations)
+PASS: contact authors and aggregate states agree (0 violations)
+PASS: lifecycle chronology is consistent (0 violations)
+PASS: dashboard summaries match source records (0 violations)
+PASS: dashboard exports are current (0 violations)
+PASS: mart lifecycle facts match core (12/12 requests; counts match)
 Lifecycle facts by status:
-  cancelled: 2 requests; 4 outstanding approvals
+  cancelled: 2 requests; 7 outstanding approvals
   generated: 3 requests; 0 outstanding approvals
   partially-approved: 3 requests; 6 outstanding approvals
-  sent: 2 requests; 4 outstanding approvals
+  sent: 2 requests; 8 outstanding approvals
   submitted: 2 requests; 0 outstanding approvals
 Completed synthetic requests by workflow (not real performance):
-  authorship-change: 2 requests; mean 18.00 days
-  copublication: 3 requests; mean 17.00 days
+  authorship-change: 2 requests; mean 19.00 days
+  copublication: 3 requests; mean 18.67 days
 EXPECTED FAILURE detected: dashboard exports are current
-EXPECTED FAILURE detected: request status transitions are valid
+EXPECTED FAILURE detected: request lifecycle paths match current status
 PASS: original fixture restored after negative examples
 Scope: SQLite subset only; no SQL Server execution, external services, or real records

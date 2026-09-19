@@ -7,6 +7,10 @@ from pathlib import Path
 from .models import TABLES
 
 
+class InputDataError(ValueError):
+    """Malformed CSV input that cannot be staged."""
+
+
 def connect_mirror() -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
@@ -16,92 +20,11 @@ def connect_mirror() -> sqlite3.Connection:
 
 
 def create_schema(conn: sqlite3.Connection) -> None:
+    for spec in TABLES.values():
+        columns = ", ".join(f"{column} TEXT" for column in spec.columns)
+        conn.execute(f"CREATE TABLE stg_{spec.name} ({columns})")
     conn.executescript(
         """
-        CREATE TABLE stg_requests (
-            request_id TEXT PRIMARY KEY,
-            workflow_type TEXT NOT NULL,
-            review_title TEXT NOT NULL,
-            review_identifier TEXT NOT NULL,
-            contact_author_name TEXT NOT NULL,
-            created_date TEXT NOT NULL,
-            due_date TEXT NOT NULL,
-            current_status TEXT NOT NULL,
-            completion_date TEXT,
-            dashboard_export_status TEXT NOT NULL
-        );
-
-        CREATE TABLE stg_authors (
-            author_approval_id TEXT PRIMARY KEY,
-            request_id TEXT NOT NULL,
-            author_name TEXT NOT NULL,
-            author_role TEXT NOT NULL,
-            display_order INTEGER NOT NULL,
-            approval_status TEXT NOT NULL,
-            date_sent TEXT,
-            date_approved TEXT,
-            last_reminder_sent TEXT,
-            reminder_due TEXT
-        );
-
-        CREATE TABLE stg_approval_events (
-            event_id TEXT PRIMARY KEY,
-            request_id TEXT NOT NULL,
-            author_approval_id TEXT,
-            event_type TEXT NOT NULL,
-            event_timestamp TEXT NOT NULL,
-            actor_role TEXT NOT NULL,
-            approval_method TEXT,
-            comments TEXT
-        );
-
-        CREATE TABLE stg_reminder_events (
-            reminder_id TEXT PRIMARY KEY,
-            request_id TEXT NOT NULL,
-            author_approval_id TEXT NOT NULL,
-            reminder_type TEXT NOT NULL,
-            sent_at TEXT,
-            sent_by TEXT NOT NULL,
-            reminder_number INTEGER NOT NULL,
-            delivery_status TEXT NOT NULL,
-            next_reminder_due TEXT
-        );
-
-        CREATE TABLE stg_generated_documents (
-            document_id TEXT PRIMARY KEY,
-            request_id TEXT NOT NULL,
-            workflow_type TEXT NOT NULL,
-            template_version TEXT NOT NULL,
-            generated_at TEXT NOT NULL,
-            generated_by TEXT NOT NULL,
-            document_status TEXT NOT NULL
-        );
-
-        CREATE TABLE stg_dashboard_exports (
-            request_id TEXT PRIMARY KEY,
-            workflow_type TEXT NOT NULL,
-            review_title TEXT NOT NULL,
-            review_identifier TEXT NOT NULL,
-            total_authors INTEGER NOT NULL,
-            approved_authors INTEGER NOT NULL,
-            outstanding_authors INTEGER NOT NULL,
-            current_status TEXT NOT NULL,
-            last_reminder_sent TEXT,
-            reminder_due TEXT,
-            waiting_on TEXT,
-            last_exported_at TEXT NOT NULL
-        );
-
-        CREATE TABLE stg_project_status (
-            review_identifier TEXT PRIMARY KEY,
-            review_title TEXT NOT NULL,
-            project_phase TEXT NOT NULL,
-            priority TEXT NOT NULL,
-            owner_role TEXT NOT NULL,
-            status_as_of TEXT NOT NULL,
-            next_milestone_due TEXT NOT NULL
-        );
-
         CREATE TABLE core_request (
             request_id TEXT PRIMARY KEY,
             workflow_type TEXT NOT NULL,
@@ -178,8 +101,12 @@ def load_synthetic_csvs(conn: sqlite3.Connection, data_dir: str | Path) -> None:
     for table_name, spec in TABLES.items():
         staging_name = f"stg_{table_name}"
         with (data_path / f"{table_name}.csv").open(newline="", encoding="utf-8") as handle:
-            reader = csv.DictReader(handle)
+            reader = csv.DictReader(handle, strict=True)
+            if reader.fieldnames != list(spec.columns):
+                raise InputDataError(f"{table_name}: CSV columns do not match the contract")
             rows = list(reader)
+            if any(None in row or any(value is None for value in row.values()) for row in rows):
+                raise InputDataError(f"{table_name}: CSV row width does not match the header")
         placeholders = ", ".join("?" for _ in spec.columns)
         column_sql = ", ".join(spec.columns)
         conn.executemany(
@@ -192,14 +119,14 @@ def load_synthetic_csvs(conn: sqlite3.Connection, data_dir: str | Path) -> None:
 def run_core_and_mart_load(conn: sqlite3.Connection) -> None:
     conn.executescript(
         """
-        INSERT INTO core_request
-        SELECT * FROM stg_requests;
+        INSERT INTO core_request (request_id, workflow_type, review_title, review_identifier, contact_author_name, created_date, due_date, current_status, completion_date, dashboard_export_status)
+        SELECT request_id, workflow_type, review_title, review_identifier, contact_author_name, created_date, due_date, current_status, completion_date, dashboard_export_status FROM stg_requests;
 
-        INSERT INTO core_author_approval
-        SELECT * FROM stg_authors;
+        INSERT INTO core_author_approval (author_approval_id, request_id, author_name, author_role, display_order, approval_status, date_sent, date_approved, last_reminder_sent, reminder_due)
+        SELECT author_approval_id, request_id, author_name, author_role, display_order, approval_status, date_sent, date_approved, last_reminder_sent, reminder_due FROM stg_authors;
 
-        INSERT INTO core_approval_event
-        SELECT * FROM stg_approval_events;
+        INSERT INTO core_approval_event (event_id, request_id, author_approval_id, event_type, event_timestamp, actor_role, approval_method, comments)
+        SELECT event_id, request_id, author_approval_id, event_type, event_timestamp, actor_role, approval_method, comments FROM stg_approval_events;
 
         INSERT INTO mart_dim_status(status_key, status_code)
         SELECT ROW_NUMBER() OVER (ORDER BY current_status), current_status
@@ -249,12 +176,12 @@ def run_core_and_mart_load(conn: sqlite3.Connection) -> None:
                 WHEN r.completion_date IS NULL THEN NULL
                 ELSE CAST(JULIANDAY(r.completion_date) - JULIANDAY(r.created_date) AS INTEGER)
             END,
-            d.total_authors,
-            d.approved_authors,
-            d.outstanding_authors
+            COUNT(a.author_approval_id),
+            SUM(CASE WHEN a.approval_status = 'approved' THEN 1 ELSE 0 END),
+            SUM(CASE WHEN a.author_approval_id IS NOT NULL AND a.approval_status <> 'approved' THEN 1 ELSE 0 END)
         FROM core_request r
-        JOIN stg_dashboard_exports d ON d.request_id = r.request_id;
+        LEFT JOIN core_author_approval a ON a.request_id = r.request_id
+        GROUP BY r.request_id;
         """
     )
     conn.commit()
-

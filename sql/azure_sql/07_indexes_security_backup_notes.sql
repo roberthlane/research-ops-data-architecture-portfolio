@@ -29,14 +29,12 @@ GRANT SELECT, INSERT, UPDATE ON SCHEMA::core TO research_ops_loader;
 GRANT SELECT, INSERT, UPDATE ON SCHEMA::mart TO research_ops_loader;
 GO
 
-/*
-Illustrative operational notes; no Azure deployment or cost/restore validation:
+-- Reporting procedures may read underlying tables through same-owner ownership
+-- chains. Reader users receive no direct core/staging SELECT permission.
+GRANT EXECUTE ON OBJECT::rpt.usp_request_lifecycle_summary TO research_ops_reader;
+GRANT EXECUTE ON OBJECT::rpt.usp_stale_dashboard_exports TO research_ops_reader;
+GO
 
-1. Verify service-specific cost controls before any authorized deployment.
-2. Use only generated fixtures in any portfolio database.
-3. Use Azure portal metrics for vCore consumption and storage use.
-4. Export a bacpac or use point-in-time restore for recovery demonstrations.
-5. Store SQL credentials outside git, preferably in GitHub Actions secrets.
-6. Do not grant direct access to staging schemas for reporting users.
-*/
-
+CREATE NONCLUSTERED INDEX ix_dashboard_export_time
+ON stg.dashboard_exports(last_exported_at);
+GO

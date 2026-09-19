@@ -13,15 +13,15 @@ Run order:
   07_indexes_security_backup_notes.sql
 */
 
-CREATE SCHEMA stg;
+CREATE SCHEMA stg AUTHORIZATION dbo;
 GO
 
-CREATE SCHEMA core;
+CREATE SCHEMA core AUTHORIZATION dbo;
 GO
 
-CREATE SCHEMA mart;
+CREATE SCHEMA mart AUTHORIZATION dbo;
 GO
 
-CREATE SCHEMA rpt;
+CREATE SCHEMA rpt AUTHORIZATION dbo;
 GO
 

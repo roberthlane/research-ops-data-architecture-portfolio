@@ -3,6 +3,14 @@ GO
 
 BEGIN TRANSACTION;
 
+-- Daily Type 2 snapshots. Multiple changes on one load day coalesce into that
+-- day's version; a later day expires it and starts a new inclusive interval.
+DECLARE @load_date date = COALESCE(
+    CONVERT(date, SESSION_CONTEXT(N'load_date')), CONVERT(date, SYSUTCDATETIME())
+);
+IF EXISTS (SELECT 1 FROM mart.dim_author WHERE is_current = 1 AND effective_start_date > @load_date)
+    THROW 50001, 'Backdated dimension loads are not supported.', 1;
+
 ;WITH date_bounds AS (
     SELECT MIN(created_date) AS min_date, MAX(due_date) AS max_date FROM core.request
 ),
@@ -69,42 +77,33 @@ WHEN NOT MATCHED THEN
     INSERT (review_identifier, review_title, first_request_id)
     VALUES (source.review_identifier, source.review_title, source.first_request_id);
 
--- Type 2 SCD example: preserve author approval status history when status changes.
+-- Coalesce same-day changes without creating zero-length/duplicate intervals.
 UPDATE target
-SET effective_end_date = DATEADD(day, -1, CAST(sysdatetime() AS date)), is_current = 0
+SET author_name = source.author_name, author_role = source.author_role,
+    approval_status = source.approval_status
 FROM mart.dim_author AS target
-JOIN core.author_approval AS source
-    ON source.author_approval_id = target.author_approval_id
-WHERE target.is_current = 1
-  AND (
-      target.author_name <> source.author_name
-      OR target.author_role <> source.author_role
-      OR target.approval_status <> source.approval_status
-  );
+JOIN core.author_approval AS source ON source.author_approval_id = target.author_approval_id
+WHERE target.is_current = 1 AND target.effective_start_date = @load_date;
+
+UPDATE target
+SET effective_end_date = DATEADD(day, -1, @load_date), is_current = 0
+FROM mart.dim_author AS target
+JOIN core.author_approval AS source ON source.author_approval_id = target.author_approval_id
+WHERE target.is_current = 1 AND target.effective_start_date < @load_date
+  AND (target.author_name <> source.author_name
+       OR target.author_role <> source.author_role
+       OR target.approval_status <> source.approval_status);
 
 INSERT INTO mart.dim_author (
-    author_approval_id,
-    author_name,
-    author_role,
-    approval_status,
-    effective_start_date,
-    effective_end_date,
-    is_current
+    author_approval_id, author_name, author_role, approval_status,
+    effective_start_date, effective_end_date, is_current
 )
-SELECT
-    source.author_approval_id,
-    source.author_name,
-    source.author_role,
-    source.approval_status,
-    COALESCE(source.date_sent, CAST(sysdatetime() AS date)),
-    NULL,
-    1
+SELECT source.author_approval_id, source.author_name, source.author_role,
+       source.approval_status, @load_date, NULL, 1
 FROM core.author_approval AS source
 WHERE NOT EXISTS (
-    SELECT 1
-    FROM mart.dim_author AS target
-    WHERE target.author_approval_id = source.author_approval_id
-      AND target.is_current = 1
+    SELECT 1 FROM mart.dim_author AS target
+    WHERE target.author_approval_id = source.author_approval_id AND target.is_current = 1
 );
 
 MERGE mart.fact_request_lifecycle AS target
@@ -118,12 +117,16 @@ USING (
         d_due.date_key AS due_date_key,
         d_done.date_key AS completion_date_key,
         CASE WHEN r.completion_date IS NULL THEN NULL ELSE DATEDIFF(day, r.created_date, r.completion_date) END AS cycle_time_days,
-        DATEDIFF(day, CAST(sysdatetime() AS date), r.due_date) AS days_until_due,
-        de.total_authors,
-        de.approved_authors,
-        de.outstanding_authors
+        ac.total_authors,
+        ac.approved_authors,
+        ac.outstanding_authors
     FROM core.request AS r
-    JOIN stg.dashboard_exports AS de ON de.request_id = r.request_id
+    CROSS APPLY (
+        SELECT COUNT(*) AS total_authors,
+               COALESCE(SUM(CASE WHEN a.approval_status = 'approved' THEN 1 ELSE 0 END), 0) AS approved_authors,
+               COALESCE(SUM(CASE WHEN a.approval_status <> 'approved' THEN 1 ELSE 0 END), 0) AS outstanding_authors
+        FROM core.author_approval AS a WHERE a.request_id = r.request_id
+    ) AS ac
     JOIN mart.dim_review AS dr ON dr.review_identifier = r.review_identifier
     JOIN mart.dim_workflow_type AS dw ON dw.workflow_type_code = r.workflow_type_code
     JOIN mart.dim_status AS ds ON ds.status_code = r.current_status
@@ -140,7 +143,6 @@ WHEN MATCHED THEN UPDATE SET
     due_date_key = source.due_date_key,
     completion_date_key = source.completion_date_key,
     cycle_time_days = source.cycle_time_days,
-    days_until_due = source.days_until_due,
     total_authors = source.total_authors,
     approved_authors = source.approved_authors,
     outstanding_authors = source.outstanding_authors
@@ -154,7 +156,6 @@ WHEN NOT MATCHED THEN
         due_date_key,
         completion_date_key,
         cycle_time_days,
-        days_until_due,
         total_authors,
         approved_authors,
         outstanding_authors
@@ -168,7 +169,6 @@ WHEN NOT MATCHED THEN
         source.due_date_key,
         source.completion_date_key,
         source.cycle_time_days,
-        source.days_until_due,
         source.total_authors,
         source.approved_authors,
         source.outstanding_authors

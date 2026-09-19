@@ -9,10 +9,11 @@ SELECT
     f.total_authors,
     f.approved_authors,
     f.outstanding_authors,
-    f.days_until_due
+    DATEDIFF(day, CONVERT(date, SYSUTCDATETIME()), r.due_date) AS days_until_due
 FROM core.request AS r
 JOIN mart.fact_request_lifecycle AS f ON f.request_id = r.request_id
-WHERE r.current_status NOT IN ('submitted', 'archived', 'cancelled')
+JOIN core.request_status AS s ON s.status_code = r.current_status
+WHERE s.terminal_flag = 0
   AND f.outstanding_authors > 0;
 GO
 
@@ -29,11 +30,11 @@ WHERE f.cycle_time_days IS NOT NULL
 GROUP BY dw.workflow_type_code;
 GO
 
-CREATE OR ALTER VIEW rpt.vw_reminder_effectiveness AS
+CREATE OR ALTER VIEW rpt.vw_reminder_approval_status AS
 SELECT
     r.workflow_type_code,
     COUNT(DISTINCT rem.reminder_id) AS reminders_sent,
-    COUNT(DISTINCT CASE WHEN a.approval_status = 'approved' THEN a.author_approval_id END) AS approvals_after_reminder
+    COUNT(DISTINCT CASE WHEN a.approval_status = 'approved' THEN a.author_approval_id END) AS currently_approved_authors
 FROM core.reminder_event AS rem
 JOIN core.request AS r ON r.request_id = rem.request_id
 JOIN core.author_approval AS a ON a.author_approval_id = rem.author_approval_id
@@ -67,6 +68,9 @@ CREATE OR ALTER PROCEDURE rpt.usp_stale_dashboard_exports
 AS
 BEGIN
     SET NOCOUNT ON;
+    IF @max_age_days IS NULL OR @max_age_days < 0 OR @max_age_days > 36500
+        THROW 50002, 'max_age_days must be between 0 and 36500.', 1;
+    DECLARE @today date = CONVERT(date, SYSUTCDATETIME());
 
     SELECT
         request_id,
@@ -74,10 +78,9 @@ BEGIN
         review_title,
         current_status,
         last_exported_at,
-        DATEDIFF(day, last_exported_at, sysdatetime()) AS export_age_days
+        DATEDIFF(day, last_exported_at, @today) AS export_age_days
     FROM stg.dashboard_exports
-    WHERE DATEDIFF(day, last_exported_at, sysdatetime()) > @max_age_days
+    WHERE last_exported_at < DATEADD(day, -@max_age_days, CONVERT(datetime2(0), @today))
     ORDER BY export_age_days DESC;
 END;
 GO
-

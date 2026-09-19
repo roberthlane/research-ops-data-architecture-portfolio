@@ -53,6 +53,7 @@ CREATE TABLE core.author_approval (
     updated_at         datetime2(0)  NOT NULL CONSTRAINT df_author_approval_updated_at DEFAULT (sysdatetime()),
     CONSTRAINT pk_author_approval PRIMARY KEY CLUSTERED (author_approval_id),
     CONSTRAINT fk_author_approval_request FOREIGN KEY (request_id) REFERENCES core.request(request_id),
+    CONSTRAINT ck_author_status CHECK (approval_status IN ('pending','sent','approved','declined','needs-follow-up')),
     CONSTRAINT ck_author_display_order CHECK (display_order > 0),
     CONSTRAINT ck_author_approval_dates CHECK (
         date_approved IS NULL OR date_sent IS NULL OR date_approved >= date_sent

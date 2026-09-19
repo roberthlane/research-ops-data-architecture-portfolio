@@ -1,75 +1,17 @@
-# Query Plan And Index Notes
+# Query and index notes
 
-These notes document the intended SQL Server tuning exercise. Capture actual
-query-plan screenshots after running the scripts in Azure SQL.
+The open-queue view uses the shared status lookup's terminal flag and computes
+days-until-due at query time. Indexes on request status/deadline and lifecycle
+status/deadline support that access pattern; actual engine plans determine whether
+those indexes help at a given scale.
 
-## Query 1: Open Approval Queue
+The stale-export procedure compares `last_exported_at` directly with a cutoff at
+UTC midnight minus the allowed calendar-day age. Exactly two days old passes a
+2-day threshold; one second earlier fails. The timestamp index is available for
+range access, without wrapping the indexed column in DATEDIFF in the predicate.
 
-Object: `rpt.vw_open_approval_queue`
+`vw_reminder_approval_status` counts reminders and currently approved linked authors.
+It does not claim that reminders caused approval or that approvals occurred afterward.
+Cycle-time reporting aggregates completed lifecycle facts by workflow.
 
-Expected access pattern:
-
-- filter by nonterminal status;
-- filter to requests with outstanding authors;
-- order or scan by due date.
-
-Index support:
-
-- `ix_request_status_due` on `core.request`;
-- `ix_fact_lifecycle_status_due` on `mart.fact_request_lifecycle`.
-
-## Query 2: Cycle Time By Workflow
-
-Object: `rpt.vw_cycle_time_by_workflow`
-
-Expected access pattern:
-
-- aggregate completed requests by workflow type;
-- ignore requests without completion dates.
-
-Index support:
-
-- clustered key on `mart.fact_request_lifecycle(request_id)`;
-- dimension keys on workflow and status.
-
-## Query 3: Reminder/approval association (misleading legacy object name)
-
-Object: `rpt.vw_reminder_effectiveness`
-
-The view does not test timestamp order or causal effectiveness. Its
-`approvals_after_reminder` alias overstates what the query establishes.
-
-Expected access pattern:
-
-- join reminders to author approvals and requests;
-- group by workflow type.
-
-Index support:
-
-- `ix_author_request_status`;
-- future improvement: add `ix_reminder_request_author` if the reminder table
-  grows.
-
-## Query 4: Request Event Timeline
-
-Expected access pattern:
-
-- retrieve all events for one request ordered by timestamp.
-
-Index support:
-
-- `ix_approval_event_request_time`.
-
-## Query 5: Stale Dashboard Exports
-
-Object: `rpt.usp_stale_dashboard_exports`
-
-Expected access pattern:
-
-- scan dashboard export timestamps and return stale rows.
-
-Future improvement:
-
-- add an index on `stg.dashboard_exports(last_exported_at)` if stale-export
-  checks become expensive.
-
+No query-speed improvement is claimed without measured engine execution plans.

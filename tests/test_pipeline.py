@@ -31,14 +31,23 @@ class PipelineTests(unittest.TestCase):
 
             self.assertGreaterEqual(dataset.row_counts["requests"], 10)
             self.assertGreater(dataset.row_counts["authors"], dataset.row_counts["requests"])
-            self.assertGreater(dataset.row_counts["approval_events"], dataset.row_counts["requests"])
+            self.assertGreater(
+                dataset.row_counts["approval_events"], dataset.row_counts["requests"]
+            )
 
     def test_synthetic_data_does_not_include_private_identifiers(self) -> None:
-        private_terms = ["@", "https://", "http://", "token", "CD120"]
+        private_terms = ["@", "https://", "http://", "token"]
         with tempfile.TemporaryDirectory() as tmp:
             build_synthetic_dataset(tmp)
             text = "\n".join(path.read_text(encoding="utf-8") for path in Path(tmp).glob("*.csv"))
 
+        import csv
+
+        with tempfile.TemporaryDirectory() as tmp:
+            build_synthetic_dataset(tmp)
+            with (Path(tmp) / "requests.csv").open() as handle:
+                for row in csv.DictReader(handle):
+                    self.assertRegex(row["review_identifier"], r"^SYN-REVIEW-\d{4}$")
         self.assertIn("SYN-REVIEW-0001", text)
         self.assertIn("Demo Author 01", text)
         for term in private_terms:
@@ -52,11 +61,12 @@ class PipelineTests(unittest.TestCase):
             run_core_and_mart_load(conn)
 
             request_count = conn.execute("SELECT COUNT(*) FROM core_request").fetchone()[0]
-            fact_count = conn.execute("SELECT COUNT(*) FROM mart_fact_request_lifecycle").fetchone()[0]
+            fact_count = conn.execute(
+                "SELECT COUNT(*) FROM mart_fact_request_lifecycle"
+            ).fetchone()[0]
 
         self.assertEqual(fact_count, request_count)
 
 
 if __name__ == "__main__":
     unittest.main()
-
