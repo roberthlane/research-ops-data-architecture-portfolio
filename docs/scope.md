@@ -17,7 +17,7 @@
 - Engine validation covers SQL Server 2022 Developer on amd64 Linux using the synthetic
   fixtures. Azure SQL deployment, other engine versions, and scale are not tested.
 
-The prior RC3 workflow-constraint and calendar-language scenarios passed alongside
-load, history, permission, and freshness checks. The schema cleanup removing unused
-facts awaits a fresh engine run. See the commit-specific evidence in
+The RC4 schema and harness passed SQL Server integration after the unused facts were
+removed, including workflow-constraint, calendar-language, load, history, permission,
+and freshness checks. See the commit-specific evidence in
 [SQL Server integration](sql-server-integration.md).

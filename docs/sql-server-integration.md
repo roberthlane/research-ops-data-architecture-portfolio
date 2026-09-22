@@ -25,15 +25,16 @@ schema/load/reporting/permission scripts, and checks:
 - Document workflow agreement enforced by the database, including a different valid code.
 - Identical calendar keys/labels/weekend flags under French/German and different DATEFIRST settings.
 
-The [validated RC3 CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35757347305)
-for commit `e18303d81f807992f214dbe76d64aa8092d2d7e3` passed every scenario above,
+The [validated RC4 CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35793110207)
+for commit `9595b7d3f5cc2b1da135628e3236fc524b9f6175` passed every scenario above,
 including document workflow enforcement and the French/German calendar rebuilds,
 on SQL Server 2022 Developer, version 16.0.4295.3, on amd64 Linux.
-Python 3.11 and 3.14 each passed all 19 tests and the shared lint, format, type,
-generated-artifact, and package-install checks in the same run.
+Python 3.11 and 3.14 each passed all 22 tests and the shared lint, format, type,
+generated-artifact, and package-install checks in the same run. Strict typing includes
+source, scripts, and tests; mocked failure tests verify Docker diagnostic output and
+password redaction.
 This establishes container-engine behavior; Azure SQL deployment is not tested.
-The subsequent schema cleanup removes unused fact declarations; that revision
-awaits a fresh engine run.
+The run includes the reduced mart schema after removal of unused fact declarations.
 Use the [current workflow](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/workflows/ci.yml)
 to inspect results for later revisions; a historical passing run does not validate changed SQL.
 
