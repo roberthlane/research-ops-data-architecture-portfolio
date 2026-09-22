@@ -2,7 +2,7 @@
 
 The generator defines seven CSV extracts. `models.py` defines their exact column
 order; malformed headers or row widths produce a failure report. Validation checks
-keys, fields, references, vocabularies, request paths, author/contact state, chronology,
+keys, fields, references, vocabularies, request paths, contact identity, approval state, chronology,
 export reconciliation, and freshness before core loading.
 
 | Input | Local destination | Reporting use |

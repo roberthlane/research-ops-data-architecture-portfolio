@@ -250,6 +250,13 @@ def _check_contacts(data: StagingData) -> QualityResult:
         contacts = [a for a in authors if a["author_role"] == "contact author"]
         if len(contacts) != 1 or contacts[0]["author_name"] != request["contact_author_name"]:
             problems.append(f"{rid}: contact author mismatch")
+    return _result("contact authors match request identity", problems)
+
+
+def _check_approval_states(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for rid, request in data.requests.items():
+        authors = data.authors_by_request.get(rid, [])
         approved = sum(a["approval_status"] == "approved" for a in authors)
         status = request["current_status"]
         if (
@@ -261,7 +268,7 @@ def _check_contacts(data: StagingData) -> QualityResult:
             )
         ):
             problems.append(f"{rid}: state disagrees with approvals")
-    return _result("contact authors and aggregate states agree", problems)
+    return _result("request states agree with author approvals", problems)
 
 
 def _author_chronology(data: StagingData, author: Row, created: date | None) -> list[str]:
@@ -363,6 +370,7 @@ def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> l
         _check_vocabularies(data),
         _check_paths(data),
         _check_contacts(data),
+        _check_approval_states(data),
         _check_chronology(data),
         _check_summaries(data),
         _check_freshness(data, today or REFERENCE_DATE),

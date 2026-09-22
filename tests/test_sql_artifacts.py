@@ -29,10 +29,7 @@ class SqlArtifactTests(unittest.TestCase):
             "mart.dim_author",
             "mart.dim_workflow_type",
             "mart.dim_status",
-            "mart.fact_approval_event",
             "mart.fact_request_lifecycle",
-            "mart.fact_reminder",
-            "mart.fact_dashboard_snapshot",
         ]:
             self.assertIn(table, mart_sql)
 

@@ -47,7 +47,8 @@ def main() -> None:
             raise RuntimeError("Synthetic CSV file set differs")
         generated["docs/quality-report.md"] = (scratch / "quality.md").read_bytes()
         generated["docs/data-dictionary.md"] = render().encode()
-        # The demo also independently checks committed fixtures and two generations.
+        # Refresh before the demo checks committed fixtures; the final loop rewrites
+        # these same bytes and adds the newly captured demo output.
         if args.write:
             for name, contents in generated.items():
                 (ROOT / name).write_bytes(contents)

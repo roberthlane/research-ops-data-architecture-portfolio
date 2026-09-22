@@ -10,6 +10,8 @@ The explicit flag accepts Microsoft's SQL Server container EULA for a disposable
 Developer edition test. The script uses an official image pinned by digest, creates
 a random container and password, exposes no host ports, mounts no volumes, and removes
 only its own container when finished. It does not connect to an existing database.
+Docker startup and cleanup failures include captured output and exit status, with
+the generated database password redacted.
 
 The test validates synthetic CSVs, imports them into typed staging, executes all
 schema/load/reporting/permission scripts, and checks:
@@ -30,6 +32,8 @@ on SQL Server 2022 Developer, version 16.0.4295.3, on amd64 Linux.
 Python 3.11 and 3.14 each passed all 19 tests and the shared lint, format, type,
 generated-artifact, and package-install checks in the same run.
 This establishes container-engine behavior; Azure SQL deployment is not tested.
+The subsequent schema cleanup removes unused fact declarations; that revision
+awaits a fresh engine run.
 Use the [current workflow](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/workflows/ci.yml)
 to inspect results for later revisions; a historical passing run does not validate changed SQL.
 

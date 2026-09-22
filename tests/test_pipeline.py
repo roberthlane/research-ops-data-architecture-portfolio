@@ -18,6 +18,7 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             dataset = build_synthetic_dataset(tmp)
             conn = connect_mirror()
+            self.addCleanup(conn.close)
             load_synthetic_csvs(conn, dataset.output_dir)
             run_core_and_mart_load(conn)
 
@@ -57,6 +58,7 @@ class PipelineTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             build_synthetic_dataset(tmp)
             conn = connect_mirror()
+            self.addCleanup(conn.close)
             load_synthetic_csvs(conn, tmp)
             run_core_and_mart_load(conn)
 

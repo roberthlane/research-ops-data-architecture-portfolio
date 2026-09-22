@@ -25,6 +25,19 @@ def literal(value: str) -> str:
     return "N'" + value.replace("'", "''") + "'" if value else "NULL"
 
 
+def run_docker(args: list[str], env: dict[str, str]) -> None:
+    result = subprocess.run(["docker", *args], env=env, text=True, capture_output=True)
+    if result.returncode:
+        detail = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
+        for key in ("MSSQL_SA_PASSWORD", "SQLCMDPASSWORD"):
+            if env.get(key):
+                detail = detail.replace(env[key], "[REDACTED]")
+        raise RuntimeError(
+            f"Docker {args[0]} failed (exit {result.returncode}): "
+            + (detail or "No output captured.")
+        )
+
+
 def seed_sql(data_dir: Path) -> str:
     """Validate CSVs before importing into SQL Server's typed staging tables."""
     conn = connect_mirror()
@@ -62,9 +75,8 @@ def main() -> None:
     env = dict(os.environ, MSSQL_SA_PASSWORD="Test!" + secrets.token_urlsafe(24))
     env["SQLCMDPASSWORD"] = env["MSSQL_SA_PASSWORD"]
     # No host port, volume, external database, or credential is reused.
-    subprocess.run(
+    run_docker(
         [
-            "docker",
             "run",
             "--rm",
             "-d",
@@ -79,8 +91,6 @@ def main() -> None:
             IMAGE,
         ],
         env=env,
-        check=True,
-        capture_output=True,
     )
 
     def sql(
@@ -262,7 +272,7 @@ def main() -> None:
         print(sql("SELECT @@VERSION AS engine_version;").strip())
     finally:
         # Only this invocation's random, disposable container can be removed.
-        subprocess.run(["docker", "rm", "-f", name], check=True, capture_output=True)
+        run_docker(["rm", "-f", name], env)
 
 
 if __name__ == "__main__":

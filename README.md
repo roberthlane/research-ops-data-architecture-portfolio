@@ -65,8 +65,9 @@ The project has no production deployment or user-impact claims.
 
 Install development tools with `python -m pip install -r requirements-dev.txt`, then run
 `make check PYTHON=python`. This is the same command CI uses: lint, formatting, strict
-types, tests, generated-artifact comparisons, and a source/wheel build with a clean
-console-install smoke test. It leaves generated files unchanged and builds in scratch storage.
+types across source, scripts, and tests, unit tests, generated-artifact comparisons,
+and a source/wheel build with a clean console-install smoke test. It leaves generated
+files unchanged and builds in scratch storage.
 Run `make refresh PYTHON=python` to deliberately update the generated artifacts.
 
 SQL Server is separate: `make check-sql PYTHON=python SQL_SERVER_ARGS=--accept-eula`

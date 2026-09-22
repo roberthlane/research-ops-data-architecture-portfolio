@@ -73,7 +73,7 @@ class CliFailureTests(unittest.TestCase):
             ("requests", "current_status", "invalid-state", "controlled vocabularies"),
             ("authors", "approval_status", "invalid-state", "controlled vocabularies"),
             ("requests", "contact_author_name", "Wrong placeholder", "contact authors"),
-            ("requests", "current_status", "sent", "contact authors"),
+            ("requests", "current_status", "sent", "request states"),
             ("authors", "date_approved", "2020-01-01", "lifecycle chronology"),
             ("authors", "date_approved", "2026-06-01", "lifecycle chronology"),
             ("dashboard_exports", "total_authors", "999", "dashboard summaries"),
@@ -94,6 +94,30 @@ class CliFailureTests(unittest.TestCase):
                 self.assertIn(f"FAIL: {check}", report)
                 self.assertNotIn("old successful", report)
                 self.assertNotIn("Traceback", result.stderr)
+
+    def test_contact_identity_and_approval_state_report_independently(self) -> None:
+        cases = [
+            (
+                "contact_author_name",
+                "Wrong placeholder",
+                "contact authors match request identity",
+                "request states agree with author approvals",
+            ),
+            (
+                "current_status",
+                "sent",
+                "request states agree with author approvals",
+                "contact authors match request identity",
+            ),
+        ]
+        for column, value, failed, passed in cases:
+            with self.subTest(column=column):
+                build_synthetic_dataset(self.data)
+                self.rewrite("requests", 0, column, value)
+                self.assertEqual(self.invoke().returncode, 1)
+                report = self.report.read_text()
+                self.assertIn(f"FAIL: {failed} - 1 violation;", report)
+                self.assertIn(f"PASS: {passed} - 0 violations", report)
 
     def test_duplicates_reach_quality_gate_before_core_loading(self) -> None:
         path = self.data / "requests.csv"
