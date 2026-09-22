@@ -23,11 +23,13 @@ schema/load/reporting/permission scripts, and checks:
 - Document workflow agreement enforced by the database, including a different valid code.
 - Identical calendar keys/labels/weekend flags under French/German and different DATEFIRST settings.
 
-The [baseline validated CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35457514854)
-passed the original load/SCD/permission/freshness scenarios on SQL Server 2022 Developer, version 16.0.4295.3,
-on amd64 Linux. Python 3.11 and 3.14 checks passed in the same run.
+The [validated RC3 CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35757347305)
+for commit `e18303d81f807992f214dbe76d64aa8092d2d7e3` passed every scenario above,
+including document workflow enforcement and the French/German calendar rebuilds,
+on SQL Server 2022 Developer, version 16.0.4295.3, on amd64 Linux.
+Python 3.11 and 3.14 each passed all 19 tests and the shared lint, format, type,
+generated-artifact, and package-install checks in the same run.
 This establishes container-engine behavior; Azure SQL deployment is not tested.
-The added workflow-constraint and calendar-language scenarios await their first engine run.
 Use the [current workflow](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/workflows/ci.yml)
 to inspect results for later revisions; a historical passing run does not validate changed SQL.
 

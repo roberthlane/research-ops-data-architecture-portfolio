@@ -17,6 +17,6 @@
 - Engine validation covers SQL Server 2022 Developer on amd64 Linux using the synthetic
   fixtures. Azure SQL deployment, other engine versions, and scale are not tested.
 
-The latest workflow-constraint and calendar-language test additions require fresh engine
-evidence; the earlier SQL Server success applies to the baseline described in
+The workflow-constraint and calendar-language scenarios passed alongside the existing
+load, history, permission, and freshness checks. See the commit-specific evidence in
 [SQL Server integration](sql-server-integration.md).
