@@ -3,7 +3,7 @@
 On an amd64 Linux Docker engine, from the repository root:
 
 ```bash
-PYTHONPATH=src python3 scripts/test_sql_server.py --accept-eula
+make check-sql PYTHON=python3 SQL_SERVER_ARGS=--accept-eula
 ```
 
 The explicit flag accepts Microsoft's SQL Server container EULA for a disposable
@@ -20,11 +20,16 @@ schema/load/reporting/permission scripts, and checks:
 - Lifecycle fact counts after dashboard staging is cleared.
 - Reader access to views/procedures and denial of direct staging/core table access.
 - Freshness at the exact two-calendar-day boundary.
+- Document workflow agreement enforced by the database, including a different valid code.
+- Identical calendar keys/labels/weekend flags under French/German and different DATEFIRST settings.
 
-The [validated CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35457514854)
-passed these scenarios on SQL Server 2022 Developer, version 16.0.4295.3,
+The [baseline validated CI run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35457514854)
+passed the original load/SCD/permission/freshness scenarios on SQL Server 2022 Developer, version 16.0.4295.3,
 on amd64 Linux. Python 3.11 and 3.14 checks passed in the same run.
 This establishes container-engine behavior; Azure SQL deployment is not tested.
+The added workflow-constraint and calendar-language scenarios await their first engine run.
+Use the [current workflow](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/workflows/ci.yml)
+to inspect results for later revisions; a historical passing run does not validate changed SQL.
 
 Schema creation and mart loading explicitly set the session options required for
 [filtered indexes](https://learn.microsoft.com/en-us/sql/t-sql/statements/create-index-transact-sql?view=sql-server-ver16#required-set-options-for-filtered-indexes),

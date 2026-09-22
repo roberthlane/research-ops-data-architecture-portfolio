@@ -29,6 +29,7 @@ CREATE TABLE core.request (
     updated_at              datetime2(0)   NOT NULL CONSTRAINT df_request_updated_at DEFAULT (sysdatetime()),
     CONSTRAINT pk_request PRIMARY KEY CLUSTERED (request_id),
     CONSTRAINT uq_request_review_identifier UNIQUE (review_identifier),
+    CONSTRAINT uq_request_workflow UNIQUE (request_id, workflow_type_code),
     CONSTRAINT fk_request_workflow_type FOREIGN KEY (workflow_type_code) REFERENCES core.workflow_type(workflow_type_code),
     CONSTRAINT fk_request_status FOREIGN KEY (current_status) REFERENCES core.request_status(status_code),
     CONSTRAINT ck_request_dates CHECK (due_date >= created_date),
@@ -105,7 +106,7 @@ CREATE TABLE core.generated_document (
     document_status  varchar(40)  NOT NULL,
     inserted_at      datetime2(0) NOT NULL CONSTRAINT df_generated_document_inserted_at DEFAULT (sysdatetime()),
     CONSTRAINT pk_generated_document PRIMARY KEY CLUSTERED (document_id),
-    CONSTRAINT fk_generated_document_request FOREIGN KEY (request_id) REFERENCES core.request(request_id)
+    CONSTRAINT fk_generated_document_request_workflow FOREIGN KEY (request_id, workflow_type)
+        REFERENCES core.request(request_id, workflow_type_code)
 );
 GO
-

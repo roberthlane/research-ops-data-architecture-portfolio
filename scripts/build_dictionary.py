@@ -66,10 +66,10 @@ MEANINGS = {
     "calendar_year": "Four-digit calendar year.",
     "calendar_quarter": "Calendar quarter 1 through 4.",
     "calendar_month": "Calendar month 1 through 12.",
-    "month_name": "Month label in the SQL Server session language.",
+    "month_name": "Stable English month label, independent of session language.",
     "day_of_month": "Day of month 1 through 31.",
-    "day_of_week_name": "Weekday label in the SQL Server session language.",
-    "is_weekend": "Weekend indicator; the SQL script assumes an English session language.",
+    "day_of_week_name": "Stable English weekday label, independent of session language and DATEFIRST.",
+    "is_weekend": "Weekend indicator derived from a fixed Monday anchor, independent of session settings.",
     "first_request_id": "First request natural key associated with the review dimension.",
     "effective_start_date": "Inclusive load day starting this author version, not source date_sent.",
     "effective_end_date": "Inclusive last day of a closed version; NULL for the current version.",
@@ -120,13 +120,17 @@ def render() -> str:
                     lines.append(
                         f"| `{name}` | `{datatype}` | {'Yes' if null == 'NULL' else 'No'} | {meaning(name)} |"
                     )
-            constraints = [
-                line.strip().rstrip(",") for line in body.splitlines() if "CONSTRAINT " in line
-            ]
+            constraints = []
+            for line in body.splitlines():
+                stripped = line.strip()
+                if "CONSTRAINT " in stripped:
+                    constraints.append(stripped.rstrip(","))
+                elif constraints and stripped:
+                    constraints[-1] += " " + stripped.rstrip(",")
             lines += ["", "Declared constraints:", "", *[f"- `{c}`" for c in constraints], ""]
     lines += [
         "`mart.dim_author` also has a filtered unique index allowing one current row per author.",
-        "Full multiline CHECK expressions are in the linked SQL declarations; these tables list their names.",
+        "The linked SQL declarations are the source of these column and constraint definitions.",
         "",
     ]
     return "\n".join(lines)

@@ -203,10 +203,11 @@ Declared constraints:
 - `updated_at              datetime2(0)   NOT NULL CONSTRAINT df_request_updated_at DEFAULT (sysdatetime())`
 - `CONSTRAINT pk_request PRIMARY KEY CLUSTERED (request_id)`
 - `CONSTRAINT uq_request_review_identifier UNIQUE (review_identifier)`
+- `CONSTRAINT uq_request_workflow UNIQUE (request_id, workflow_type_code)`
 - `CONSTRAINT fk_request_workflow_type FOREIGN KEY (workflow_type_code) REFERENCES core.workflow_type(workflow_type_code)`
 - `CONSTRAINT fk_request_status FOREIGN KEY (current_status) REFERENCES core.request_status(status_code)`
 - `CONSTRAINT ck_request_dates CHECK (due_date >= created_date)`
-- `CONSTRAINT ck_request_completion CHECK (`
+- `CONSTRAINT ck_request_completion CHECK ( completion_date IS NULL OR completion_date >= created_date )`
 
 ## core.author_approval
 
@@ -236,7 +237,7 @@ Declared constraints:
 - `CONSTRAINT fk_author_approval_request FOREIGN KEY (request_id) REFERENCES core.request(request_id)`
 - `CONSTRAINT ck_author_status CHECK (approval_status IN ('pending','sent','approved','declined','needs-follow-up'))`
 - `CONSTRAINT ck_author_display_order CHECK (display_order > 0)`
-- `CONSTRAINT ck_author_approval_dates CHECK (`
+- `CONSTRAINT ck_author_approval_dates CHECK ( date_approved IS NULL OR date_sent IS NULL OR date_approved >= date_sent )`
 
 ## core.approval_event
 
@@ -305,7 +306,7 @@ Declared constraints:
 
 - `inserted_at      datetime2(0) NOT NULL CONSTRAINT df_generated_document_inserted_at DEFAULT (sysdatetime())`
 - `CONSTRAINT pk_generated_document PRIMARY KEY CLUSTERED (document_id)`
-- `CONSTRAINT fk_generated_document_request FOREIGN KEY (request_id) REFERENCES core.request(request_id)`
+- `CONSTRAINT fk_generated_document_request_workflow FOREIGN KEY (request_id, workflow_type) REFERENCES core.request(request_id, workflow_type_code)`
 
 ## mart.dim_date
 
@@ -318,10 +319,10 @@ Declared constraints:
 | `calendar_year` | `int` | No | Four-digit calendar year. |
 | `calendar_quarter` | `tinyint` | No | Calendar quarter 1 through 4. |
 | `calendar_month` | `tinyint` | No | Calendar month 1 through 12. |
-| `month_name` | `varchar(20)` | No | Month label in the SQL Server session language. |
+| `month_name` | `varchar(20)` | No | Stable English month label, independent of session language. |
 | `day_of_month` | `tinyint` | No | Day of month 1 through 31. |
-| `day_of_week_name` | `varchar(20)` | No | Weekday label in the SQL Server session language. |
-| `is_weekend` | `bit` | No | Weekend indicator; the SQL script assumes an English session language. |
+| `day_of_week_name` | `varchar(20)` | No | Stable English weekday label, independent of session language and DATEFIRST. |
+| `is_weekend` | `bit` | No | Weekend indicator derived from a fixed Monday anchor, independent of session settings. |
 
 Declared constraints:
 
@@ -395,7 +396,7 @@ Declared constraints:
 
 - `CONSTRAINT pk_dim_author PRIMARY KEY CLUSTERED (author_key)`
 - `CONSTRAINT uq_dim_author_scd UNIQUE (author_approval_id, effective_start_date)`
-- `CONSTRAINT ck_dim_author_scd_dates CHECK (`
+- `CONSTRAINT ck_dim_author_scd_dates CHECK ( effective_end_date IS NULL OR effective_end_date >= effective_start_date )`
 
 ## mart.fact_approval_event
 
@@ -504,4 +505,4 @@ Declared constraints:
 - `CONSTRAINT fk_fact_snapshot_date FOREIGN KEY (snapshot_date_key) REFERENCES mart.dim_date(date_key)`
 
 `mart.dim_author` also has a filtered unique index allowing one current row per author.
-Full multiline CHECK expressions are in the linked SQL declarations; these tables list their names.
+The linked SQL declarations are the source of these column and constraint definitions.

@@ -1,10 +1,12 @@
 # Architecture
 
 The sample separates source-shaped records, validated entities, and reporting facts.
-CSV headers are exact contracts. SQLite staging accepts nullable text so invalid
+CSV headers are exact contracts. Validation groups records by request and author/event
+type once, then runs named checks; event ordering is sorted within each request. SQLite staging accepts nullable text so invalid
 keys, values, and relationships can be reported together before core insertion.
 The CLI persists that report before returning failure. Core keys and foreign keys
-provide a second integrity boundary.
+provide a second integrity boundary. SQL Server also enforces document/request workflow
+agreement with a composite foreign key.
 
 | Layer | Executable SQLite | SQL Server scripts |
 | --- | --- | --- |
@@ -29,3 +31,9 @@ as version keys.
 Three additional T-SQL facts (event, reminder, snapshot) are declared design targets
 without loaders. SQLite does not implement SCD updates. Engine-specific evidence
 is recorded separately from local SQLite results.
+
+Quality reports count rule violations within each check, not distinct affected rows.
+Each invalid vocabulary cell counts once; each row with a duplicated key is counted.
+One row can violate several rules or checks. Details show at most five examples,
+while the displayed count includes every violation. Load failures name the table and
+a controlled reason, excluding arbitrary filesystem paths and input contents.

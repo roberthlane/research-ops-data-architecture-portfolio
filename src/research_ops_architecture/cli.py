@@ -35,7 +35,9 @@ def main(argv: list[str] | None = None) -> int:
         if all(r.passed for r in results):
             run_core_and_mart_load(conn)
             results.extend(run_mart_checks(conn))
-    except (OSError, UnicodeError, csv.Error, InputDataError, sqlite3.Error) as exc:
+    except InputDataError as exc:
+        results.append(QualityResult("input and database load", False, str(exc)))
+    except (OSError, UnicodeError, csv.Error, sqlite3.Error) as exc:
         # Do not reproduce raw cell contents or credential-bearing paths in reports.
         results.append(
             QualityResult(

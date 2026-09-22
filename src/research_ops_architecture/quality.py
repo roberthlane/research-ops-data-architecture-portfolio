@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from collections import Counter
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
 
@@ -18,6 +18,7 @@ from .models import (
 )
 
 Row = dict[str, str | None]
+Groups = dict[str | None, list[Row]]
 
 
 @dataclass(frozen=True)
@@ -44,10 +45,57 @@ def _rows(conn: sqlite3.Connection, table: str) -> list[Row]:
     ]
 
 
+def _group(rows: list[Row], column: str) -> Groups:
+    groups: Groups = defaultdict(list)
+    for row in rows:
+        groups[row[column]].append(row)
+    return groups
+
+
+@dataclass
+class StagingData:
+    """One read and grouping pass; checks never rescan an unrelated request's rows."""
+
+    tables: dict[str, list[Row]]
+    requests: dict[str | None, Row]
+    authors: dict[str | None, Row]
+    authors_by_request: Groups
+    request_events: Groups
+    author_events: dict[tuple[str | None, str | None], list[Row]]
+    exports: Groups
+    documents: Groups
+
+    @classmethod
+    def read(cls, conn: sqlite3.Connection) -> StagingData:
+        tables = {table: _rows(conn, f"stg_{table}") for table in TABLES}
+        request_events: Groups = defaultdict(list)
+        author_events: dict[tuple[str | None, str | None], list[Row]] = defaultdict(list)
+        for event in tables["approval_events"]:
+            if event["author_approval_id"]:
+                author_events[event["author_approval_id"], event["event_type"]].append(event)
+            else:
+                request_events[event["request_id"]].append(event)
+        for events in request_events.values():
+            events.sort(key=lambda e: e["event_timestamp"] or "")
+        return cls(
+            tables=tables,
+            requests={r["request_id"]: r for r in tables["requests"]},
+            authors={r["author_approval_id"]: r for r in tables["authors"]},
+            authors_by_request=_group(tables["authors"], "request_id"),
+            request_events=request_events,
+            author_events=author_events,
+            exports=_group(tables["dashboard_exports"], "request_id"),
+            documents=_group(tables["generated_documents"], "request_id"),
+        )
+
+
 def _result(name: str, problems: list[str]) -> QualityResult:
-    detail = f"{len(problems)} violations"
+    # Each message represents one rule violation, not a distinct affected row.
+    detail = f"{len(problems)} {'violation' if len(problems) == 1 else 'violations'}"
     if problems:
         detail += "; " + "; ".join(problems[:5])
+    if len(problems) > 5:
+        detail += "; showing first 5"
     return QualityResult(name, not problems, detail)
 
 
@@ -60,45 +108,41 @@ def _day(value: str | None) -> date | None:
         return None
 
 
-def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> list[QualityResult]:
-    today = today or REFERENCE_DATE
-    data = {table: _rows(conn, f"stg_{table}") for table in TABLES}
-    issues: dict[str, list[str]] = {
-        name: []
-        for name in (
-            "natural keys are present and unique",
-            "required fields and values are valid",
-            "references resolve within requests",
-            "controlled vocabularies are valid",
-            "request lifecycle paths match current status",
-            "contact authors and aggregate states agree",
-            "lifecycle chronology is consistent",
-            "dashboard summaries match source records",
-            "dashboard exports are current",
-        )
-    }
-    keys, fields, refs, vocab, paths, contacts, chronology, summaries, freshness = issues.values()
-    for table, rows in data.items():
+def _check_keys(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for table, rows in data.tables.items():
         key = TABLES[table].columns[0]
         counts = Counter(row[key] for row in rows)
-        if None in counts or any(count > 1 for count in counts.values()):
-            keys.append(f"{table}: missing or duplicate key")
-        for index, row in enumerate(rows, start=1):
+        for index, row in enumerate(rows, 1):
+            if not row[key]:
+                problems.append(f"{table} row {index}: missing key")
+            elif counts[row[key]] > 1:
+                problems.append(f"{table} row {index}: duplicate key")
+    reviews = Counter(r["review_identifier"] for r in data.tables["requests"])
+    for index, request in enumerate(data.tables["requests"], 1):
+        if request["review_identifier"] and reviews[request["review_identifier"]] > 1:
+            problems.append(f"requests row {index}: duplicate review identifier")
+    return _result("natural keys are present and unique", problems)
+
+
+def _check_fields(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for table, rows in data.tables.items():
+        for index, row in enumerate(rows, 1):
             label = f"{table} row {index}"
             for column, value in row.items():
                 if not value and column not in OPTIONAL_COLUMNS[table]:
-                    fields.append(f"{label}: missing {column}")
+                    problems.append(f"{label}: missing {column}")
                 if value and column in DATE_COLUMNS[table]:
                     try:
                         if column in {"event_timestamp", "last_exported_at"}:
                             parsed = datetime.fromisoformat(value)
                             if len(value) != 19 or parsed.tzinfo is not None:
                                 raise ValueError
-                        else:
-                            if date.fromisoformat(value).isoformat() != value:
-                                raise ValueError
+                        elif date.fromisoformat(value).isoformat() != value:
+                            raise ValueError
                     except ValueError:
-                        fields.append(f"{label}: invalid {column}")
+                        problems.append(f"{label}: invalid {column}")
                 if value and column in INTEGER_COLUMNS.get(table, set()):
                     minimum = 1 if column in {"display_order", "reminder_number"} else 0
                     if (
@@ -107,13 +151,28 @@ def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> l
                         or len(value) > 10
                         or not minimum <= int(value) <= 2_147_483_647
                     ):
-                        fields.append(f"{label}: invalid {column}")
-    if not data["requests"]:
-        fields.append("requests: at least one request is required")
-    if len({r["review_identifier"] for r in data["requests"]}) != len(data["requests"]):
-        keys.append("requests: duplicate review identifier")
-    requests = {r["request_id"]: r for r in data["requests"]}
-    authors = {r["author_approval_id"]: r for r in data["authors"]}
+                        problems.append(f"{label}: invalid {column}")
+    if not data.tables["requests"]:
+        problems.append("requests: at least one request is required")
+    for index, request in enumerate(data.tables["requests"], 1):
+        if request["current_status"] in {"generated", "submitted", "archived"} and not _day(
+            request["completion_date"]
+        ):
+            problems.append(f"requests row {index}: completion date required")
+    for index, author in enumerate(data.tables["authors"], 1):
+        sent, accepted = _day(author["date_sent"]), _day(author["date_approved"])
+        if (author["approval_status"] == "approved") != (accepted is not None):
+            problems.append(f"authors row {index}: approval state/date mismatch")
+        if (
+            author["approval_status"] in {"sent", "approved", "needs-follow-up", "declined"}
+            and not sent
+        ):
+            problems.append(f"authors row {index}: send date required")
+    return _result("required fields and values are valid", problems)
+
+
+def _check_references(data: StagingData) -> QualityResult:
+    problems: list[str] = []
     for table in (
         "authors",
         "approval_events",
@@ -121,13 +180,31 @@ def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> l
         "generated_documents",
         "dashboard_exports",
     ):
-        for row in data[table]:
-            if row["request_id"] not in requests:
-                refs.append(f"{table}: missing parent request")
+        for index, row in enumerate(data.tables[table], 1):
+            parent = data.requests.get(row["request_id"])
+            if parent is None:
+                problems.append(f"{table} row {index}: missing parent request")
             aid = row.get("author_approval_id")
-            if aid and (aid not in authors or authors[aid]["request_id"] != row["request_id"]):
-                refs.append(f"{table}: author must belong to the same request")
-    for table, column, allowed in (
+            if aid and (
+                aid not in data.authors or data.authors[aid]["request_id"] != row["request_id"]
+            ):
+                problems.append(f"{table} row {index}: author must belong to the same request")
+            if (
+                table == "generated_documents"
+                and parent
+                and row["workflow_type"] != parent["workflow_type"]
+            ):
+                problems.append(f"{table} row {index}: workflow must match parent request")
+    review_ids = {r["review_identifier"] for r in data.tables["requests"] if r["review_identifier"]}
+    for index, project in enumerate(data.tables["project_status"], 1):
+        if project["review_identifier"] not in review_ids:
+            problems.append(f"project_status row {index}: missing parent review")
+    return _result("references resolve within requests", problems)
+
+
+def _check_vocabularies(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    contracts = [
         ("requests", "current_status", REQUEST_STATUSES),
         ("dashboard_exports", "current_status", REQUEST_STATUSES),
         ("authors", "approval_status", AUTHOR_APPROVAL_STATUSES),
@@ -136,26 +213,24 @@ def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> l
             (table, "workflow_type", WORKFLOW_TYPES)
             for table in ("requests", "generated_documents", "dashboard_exports")
         ),
-    ):
-        if any(row[column] not in allowed for row in data[table]):
-            vocab.append(f"{table}: invalid {column}")
-    for event in data["approval_events"]:
+    ]
+    for table, column, allowed in contracts:
+        for index, row in enumerate(data.tables[table], 1):
+            if row[column] not in allowed:
+                problems.append(f"{table} row {index}: invalid {column}")
+    for index, event in enumerate(data.tables["approval_events"], 1):
         allowed = (
             ("author-sent", "author-approved") if event["author_approval_id"] else REQUEST_STATUSES
         )
         if event["event_type"] not in allowed:
-            vocab.append("approval_events: invalid event type")
-    for request_id, request in requests.items():
-        aa = [a for a in data["authors"] if a["request_id"] == request_id]
-        ee = sorted(
-            (
-                e
-                for e in data["approval_events"]
-                if e["request_id"] == request_id and not e["author_approval_id"]
-            ),
-            key=lambda e: e["event_timestamp"] or "",
-        )
-        states = [e["event_type"] or "" for e in ee]
+            problems.append(f"approval_events row {index}: invalid event type")
+    return _result("controlled vocabularies are valid", problems)
+
+
+def _check_paths(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for rid, request in data.requests.items():
+        states = [e["event_type"] or "" for e in data.request_events.get(rid, [])]
         if (
             not states
             or states[0] != "draft"
@@ -164,89 +239,134 @@ def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> l
                 b not in VALID_REQUEST_TRANSITIONS.get(a, set()) for a, b in zip(states, states[1:])
             )
         ):
-            paths.append(f"{request_id}: invalid path or current state")
-        contact = [a for a in aa if a["author_role"] == "contact author"]
-        if len(contact) != 1 or contact[0]["author_name"] != request["contact_author_name"]:
-            contacts.append(f"{request_id}: contact author mismatch")
-        approved = sum(a["approval_status"] == "approved" for a in aa)
+            problems.append(f"{rid}: invalid path or current state")
+    return _result("request lifecycle paths match current status", problems)
+
+
+def _check_contacts(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for rid, request in data.requests.items():
+        authors = data.authors_by_request.get(rid, [])
+        contacts = [a for a in authors if a["author_role"] == "contact author"]
+        if len(contacts) != 1 or contacts[0]["author_name"] != request["contact_author_name"]:
+            problems.append(f"{rid}: contact author mismatch")
+        approved = sum(a["approval_status"] == "approved" for a in authors)
         status = request["current_status"]
         if (
             (status in {"draft", "ready-to-send", "sent"} and approved)
-            or (status == "partially-approved" and not 0 < approved < len(aa))
+            or (status == "partially-approved" and not 0 < approved < len(authors))
             or (
                 status in {"approved", "generated", "submitted", "archived"}
-                and (not aa or approved != len(aa))
+                and (not authors or approved != len(authors))
             )
         ):
-            contacts.append(f"{request_id}: state disagrees with approvals")
+            problems.append(f"{rid}: state disagrees with approvals")
+    return _result("contact authors and aggregate states agree", problems)
+
+
+def _author_chronology(data: StagingData, author: Row, created: date | None) -> list[str]:
+    problems: list[str] = []
+    rid = author["request_id"]
+    sent, accepted = _day(author["date_sent"]), _day(author["date_approved"])
+    if (sent and created and sent < created) or (accepted and (not sent or accepted < sent)):
+        problems.append(f"{rid}: author dates out of order")
+    for event_type, expected in [("author-sent", sent), ("author-approved", accepted)]:
+        events = data.author_events.get((author["author_approval_id"], event_type), [])
+        if [_day(e["event_timestamp"]) for e in events] != ([expected] if expected else []):
+            problems.append(f"{rid}: author event/date mismatch")
+    return problems
+
+
+def _check_chronology(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for rid, request in data.requests.items():
+        events = data.request_events.get(rid, [])
+        authors = data.authors_by_request.get(rid, [])
         created, due, done = (
             _day(request[c]) for c in ("created_date", "due_date", "completion_date")
         )
-        if status in {"generated", "submitted", "archived"} and done is None:
-            fields.append(f"{request_id}: completion date required")
         if created and ((due and due < created) or (done and done < created)):
-            chronology.append(f"{request_id}: request dates out of order")
-        approval_days = [_day(a["date_approved"]) for a in aa]
-        last_approval = max((day for day in approval_days if day is not None), default=None)
-        for e in ee:
-            when = _day(e["event_timestamp"])
+            problems.append(f"{rid}: request dates out of order")
+        last_approval = max(
+            (day for a in authors if (day := _day(a["date_approved"])) is not None), default=None
+        )
+        for event in events:
+            when = _day(event["event_timestamp"])
             if when and created and when < created:
-                chronology.append(f"{request_id}: event precedes creation")
+                problems.append(f"{rid}: event precedes creation")
             if (
-                e["event_type"] in {"approved", "generated", "submitted"}
+                event["event_type"] in {"approved", "generated", "submitted"}
                 and when
                 and last_approval
                 and when < last_approval
             ):
-                chronology.append(f"{request_id}: event precedes final author approval")
-        completed_events = [_day(e["event_timestamp"]) for e in ee if e["event_type"] == status]
+                problems.append(f"{rid}: event precedes final author approval")
+        completed = [
+            _day(e["event_timestamp"])
+            for e in events
+            if e["event_type"] == request["current_status"]
+        ]
         if (
-            status in {"generated", "submitted", "archived"}
-            and completed_events
-            and done != completed_events[-1]
+            request["current_status"] in {"generated", "submitted", "archived"}
+            and completed
+            and done != completed[-1]
         ):
-            chronology.append(f"{request_id}: completion does not match final event")
-        for a in aa:
-            sent, accepted = _day(a["date_sent"]), _day(a["date_approved"])
-            if (a["approval_status"] == "approved") != (accepted is not None) or (
-                a["approval_status"] in {"sent", "approved", "needs-follow-up", "declined"}
-                and not sent
-            ):
-                fields.append(f"{request_id}: author state/date mismatch")
-            if sent and created and sent < created or accepted and (not sent or accepted < sent):
-                chronology.append(f"{request_id}: author dates out of order")
-            for event_type, expected in [("author-sent", sent), ("author-approved", accepted)]:
-                actual = [
-                    _day(e["event_timestamp"])
-                    for e in data["approval_events"]
-                    if e["author_approval_id"] == a["author_approval_id"]
-                    and e["event_type"] == event_type
-                ]
-                if actual != ([expected] if expected else []):
-                    chronology.append(f"{request_id}: author event/date mismatch")
-        dd = [d for d in data["dashboard_exports"] if d["request_id"] == request_id]
-        if len(dd) != 1:
-            summaries.append(f"{request_id}: exactly one export required")
-        else:
-            d = dd[0]
-            if [d[c] for c in ("total_authors", "approved_authors", "outstanding_authors")] != [
-                str(len(aa)),
-                str(approved),
-                str(len(aa) - approved),
-            ] or any(
-                d[c] != request[c]
-                for c in ("current_status", "workflow_type", "review_identifier", "review_title")
-            ):
-                summaries.append(f"{request_id}: export disagrees with source")
-        for doc in (d for d in data["generated_documents"] if d["request_id"] == request_id):
-            generated = [_day(e["event_timestamp"]) for e in ee if e["event_type"] == "generated"]
+            problems.append(f"{rid}: completion does not match final event")
+        for author in authors:
+            problems.extend(_author_chronology(data, author, created))
+        generated = [_day(e["event_timestamp"]) for e in events if e["event_type"] == "generated"]
+        for doc in data.documents.get(rid, []):
             if not generated or _day(doc["generated_at"]) != generated[0]:
-                chronology.append(f"{request_id}: document does not match generation event")
-    for row in data["dashboard_exports"]:
+                problems.append(f"{rid}: document does not match generation event")
+    return _result("lifecycle chronology is consistent", problems)
+
+
+def _check_summaries(data: StagingData) -> QualityResult:
+    problems: list[str] = []
+    for rid, request in data.requests.items():
+        exports = data.exports.get(rid, [])
+        if len(exports) != 1:
+            problems.append(f"{rid}: exactly one export required")
+            continue
+        authors = data.authors_by_request.get(rid, [])
+        approved = sum(a["approval_status"] == "approved" for a in authors)
+        export = exports[0]
+        if [export[c] for c in ("total_authors", "approved_authors", "outstanding_authors")] != [
+            str(len(authors)),
+            str(approved),
+            str(len(authors) - approved),
+        ] or any(
+            export[c] != request[c]
+            for c in ("current_status", "workflow_type", "review_identifier", "review_title")
+        ):
+            problems.append(f"{rid}: export disagrees with source")
+    return _result("dashboard summaries match source records", problems)
+
+
+def _check_freshness(data: StagingData, today: date) -> QualityResult:
+    problems: list[str] = []
+    for index, row in enumerate(data.tables["dashboard_exports"], 1):
         exported = _day(row["last_exported_at"])
         if not exported or not 0 <= (today - exported).days <= 2:
-            freshness.append("export must be within the reference date's last two calendar days")
-    return [_result(name, problems) for name, problems in issues.items()]
+            problems.append(
+                f"dashboard_exports row {index}: export must be within the reference date's last two calendar days"
+            )
+    return _result("dashboard exports are current", problems)
+
+
+def run_staging_checks(conn: sqlite3.Connection, today: date | None = None) -> list[QualityResult]:
+    data = StagingData.read(conn)
+    return [
+        _check_keys(data),
+        _check_fields(data),
+        _check_references(data),
+        _check_vocabularies(data),
+        _check_paths(data),
+        _check_contacts(data),
+        _check_chronology(data),
+        _check_summaries(data),
+        _check_freshness(data, today or REFERENCE_DATE),
+    ]
 
 
 def run_mart_checks(conn: sqlite3.Connection) -> list[QualityResult]:

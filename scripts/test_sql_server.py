@@ -116,9 +116,10 @@ def main() -> None:
             raise RuntimeError(result.stdout + result.stderr or "Unexpected SQL exit status")
         return result.stdout + result.stderr
 
-    def load(day: str) -> None:
+    def load(day: str, settings: str = "") -> None:
         sql(
-            f"EXEC sys.sp_set_session_context @key=N'load_date', @value=N'{day}';\nGO\n"
+            settings
+            + f"EXEC sys.sp_set_session_context @key=N'load_date', @value=N'{day}';\nGO\n"
             + (SQL / "05_elt_build_mart.sql").read_text()
         )
 
@@ -148,6 +149,37 @@ def main() -> None:
         load("2026-07-01")
         sql("IF (SELECT COUNT(*) FROM mart.dim_author) <> 48 THROW 51000, 'Unchanged rerun', 1;")
         print("PASS SQL: schema, validated import, core/mart load, unchanged rerun")
+        # A valid workflow code is still invalid if it belongs to a different request workflow.
+        mismatch = sql(
+            """
+            UPDATE core.generated_document
+            SET workflow_type = CASE WHEN workflow_type='copublication'
+                                     THEN 'authorship-change' ELSE 'copublication' END
+            WHERE document_id=(SELECT TOP (1) document_id FROM core.generated_document ORDER BY document_id);
+        """,
+            expected_failure=True,
+        )
+        if "fk_generated_document_request_workflow" not in mismatch:
+            raise RuntimeError("Expected document/request workflow foreign-key rejection")
+        sql("SELECT * INTO dbo.calendar_baseline FROM mart.dim_date;")
+        for settings in (
+            "SET LANGUAGE French; SET DATEFIRST 1;\n",
+            "SET LANGUAGE German; SET DATEFIRST 7;\n",
+        ):
+            sql("DELETE FROM mart.fact_request_lifecycle; DELETE FROM mart.dim_date;")
+            load("2026-07-01", settings)
+            sql("""
+                IF EXISTS (SELECT * FROM mart.dim_date EXCEPT SELECT * FROM dbo.calendar_baseline)
+                   OR EXISTS (SELECT * FROM dbo.calendar_baseline EXCEPT SELECT * FROM mart.dim_date)
+                    THROW 51000, 'Calendar depends on session language or DATEFIRST', 1;
+                IF NOT EXISTS (SELECT 1 FROM mart.dim_date WHERE date_key=20260701
+                    AND calendar_date='20260701' AND month_name='July' AND day_of_week_name='Wednesday' AND is_weekend=0)
+                   OR NOT EXISTS (SELECT 1 FROM mart.dim_date WHERE date_key=20260704 AND day_of_week_name='Saturday' AND is_weekend=1)
+                   OR NOT EXISTS (SELECT 1 FROM mart.dim_date WHERE date_key=20260705 AND day_of_week_name='Sunday' AND is_weekend=1)
+                    THROW 51000, 'Known calendar dates incorrect', 1;
+            """)
+        sql("DROP TABLE dbo.calendar_baseline;")
+        print("PASS SQL: document workflow foreign key and locale-independent calendar")
         # Controlled attribute changes isolate SCD behavior from workflow event generation.
         sql(
             "UPDATE core.author_approval SET author_name=N'Demo Revised' WHERE author_approval_id='AUT-0001-01';"

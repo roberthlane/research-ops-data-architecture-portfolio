@@ -8,7 +8,12 @@ from .models import TABLES
 
 
 class InputDataError(ValueError):
-    """Malformed CSV input that cannot be staged."""
+    """A safe table identifier and reason; never a raw path or cell value."""
+
+    def __init__(self, table: str, reason: str) -> None:
+        self.table = table
+        self.reason = reason
+        super().__init__(f"{table}: {reason}")
 
 
 def connect_mirror() -> sqlite3.Connection:
@@ -100,13 +105,22 @@ def load_synthetic_csvs(conn: sqlite3.Connection, data_dir: str | Path) -> None:
     data_path = Path(data_dir)
     for table_name, spec in TABLES.items():
         staging_name = f"stg_{table_name}"
-        with (data_path / f"{table_name}.csv").open(newline="", encoding="utf-8") as handle:
-            reader = csv.DictReader(handle, strict=True)
-            if reader.fieldnames != list(spec.columns):
-                raise InputDataError(f"{table_name}: CSV columns do not match the contract")
-            rows = list(reader)
-            if any(None in row or any(value is None for value in row.values()) for row in rows):
-                raise InputDataError(f"{table_name}: CSV row width does not match the header")
+        try:
+            with (data_path / f"{table_name}.csv").open(newline="", encoding="utf-8") as handle:
+                reader = csv.DictReader(handle, strict=True)
+                if reader.fieldnames != list(spec.columns):
+                    raise InputDataError(table_name, "CSV columns do not match the contract")
+                rows = list(reader)
+                if any(None in row or any(value is None for value in row.values()) for row in rows):
+                    raise InputDataError(table_name, "CSV row width does not match the header")
+        except FileNotFoundError:
+            raise InputDataError(table_name, "CSV file is missing") from None
+        except UnicodeError:
+            raise InputDataError(table_name, "CSV is not valid UTF-8") from None
+        except csv.Error:
+            raise InputDataError(table_name, "CSV syntax is invalid") from None
+        except OSError:
+            raise InputDataError(table_name, "CSV file could not be read") from None
         placeholders = ", ".join("?" for _ in spec.columns)
         column_sql = ", ".join(spec.columns)
         conn.executemany(

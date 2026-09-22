@@ -1,0 +1,6 @@
+include Makefile requirements-dev.txt
+recursive-include scripts *.py
+recursive-include tests *.py
+recursive-include data/synthetic *.csv
+recursive-include docs *.md *.txt
+recursive-include sql *.sql

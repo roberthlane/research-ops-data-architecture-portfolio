@@ -13,7 +13,7 @@ export reconciliation, and freshness before core loading.
 | dashboard_exports.csv | stg_dashboard_exports | Reconciliation/freshness only; not the fact's source |
 | reminder_events.csv | stg_reminder_events | Contract validation; T-SQL also loads core reminders |
 | generated_documents.csv | stg_generated_documents | Generation chronology; T-SQL also loads core metadata |
-| project_status.csv | stg_project_status | Context-only staging |
+| project_status.csv | stg_project_status | Context-only staging; review must belong to this extract |
 
 Post-build reconciliation compares each fact's request key and author counts with
 core records. It detects missing/extra facts and wrong counts. SQL reporting computes

@@ -65,6 +65,8 @@ class CliFailureTests(unittest.TestCase):
             ("requests", "request_id", "", "natural keys"),
             ("authors", "request_id", "MISSING", "references resolve"),
             ("approval_events", "request_id", "MISSING", "references resolve"),
+            ("project_status", "review_identifier", "MISSING", "references resolve"),
+            ("generated_documents", "workflow_type", "authorship-change", "references resolve"),
             ("requests", "created_date", "", "required fields"),
             ("requests", "completion_date", "", "required fields"),
             ("requests", "due_date", "not-a-date", "required fields"),
@@ -128,6 +130,61 @@ class CliFailureTests(unittest.TestCase):
         self.rewrite("dashboard_exports", 0, "last_exported_at", "2026-06-29T00:00:00")
         self.assertEqual(self.invoke().returncode, 0)
 
+    def test_load_errors_name_table_without_paths_or_input_contents(self) -> None:
+        (self.data / "authors.csv").unlink()
+        result = self.invoke()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("authors: CSV file is missing", self.report.read_text())
+        self.assertNotIn(str(self.data), self.report.read_text())
+        build_synthetic_dataset(self.data)
+        (self.data / "requests.csv").write_text("PRIVATE-HEADER,PRIVATE-VALUE\na,b\n")
+        self.assertEqual(self.invoke().returncode, 1)
+        report = self.report.read_text()
+        self.assertIn("requests: CSV columns do not match the contract", report)
+        self.assertNotIn("PRIVATE", report)
+        self.assertNotIn(str(self.data), report)
+
+    def test_vocabulary_counts_each_invalid_row_with_singular_grammar(self) -> None:
+        for count in (1, 3):
+            with self.subTest(count=count):
+                build_synthetic_dataset(self.data)
+                for index in range(count):
+                    self.rewrite("requests", index, "current_status", "bogus")
+                self.assertEqual(self.invoke().returncode, 1)
+                line = next(
+                    line
+                    for line in self.report.read_text().splitlines()
+                    if line.startswith("- FAIL: controlled vocabularies")
+                )
+                noun = "violation" if count == 1 else "violations"
+                self.assertIn(f" - {count} {noun};", line)
+
+    def test_duplicate_key_count_includes_each_affected_row(self) -> None:
+        path = self.data / "requests.csv"
+        lines = path.read_text().splitlines()
+        # Original row plus two copies: three key and three review-key violations.
+        path.write_text("\n".join(lines + [lines[1], lines[1]]) + "\n")
+        self.assertEqual(self.invoke().returncode, 1)
+        report = self.report.read_text()
+        self.assertIn("natural keys are present and unique - 6 violations;", report)
+        self.assertIn("showing first 5", report)
+
+    def test_unsorted_events_pass_but_duplicate_author_event_fails(self) -> None:
+        path = self.data / "approval_events.csv"
+        with path.open(newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        with path.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=TABLES["approval_events"].columns)
+            writer.writeheader()
+            writer.writerows(reversed(rows))
+        self.assertEqual(self.invoke().returncode, 0)
+        duplicate = next(row.copy() for row in rows if row["event_type"] == "author-approved")
+        duplicate["event_id"] = "EXTRA-AUTHOR-APPROVAL"
+        with path.open("a", newline="") as handle:
+            csv.DictWriter(handle, fieldnames=TABLES["approval_events"].columns).writerow(duplicate)
+        self.assertEqual(self.invoke().returncode, 1)
+        self.assertIn("FAIL: lifecycle chronology", self.report.read_text())
+
     def test_event_parent_must_match_author_parent(self) -> None:
         self.rewrite("approval_events", 0, "author_approval_id", "AUT-0002-01")
         self.assertEqual(self.invoke().returncode, 1)
@@ -170,3 +227,41 @@ class CliFailureTests(unittest.TestCase):
                 self.assertNotEqual(run.returncode, 0)
                 self.assertIn("Committed fixture differs", run.stderr)
                 self.assertNotIn("PASS: 7 committed", run.stdout)
+
+    def test_generated_check_detects_drift_without_overwriting_it(self) -> None:
+        copy = Path(self.temp.name) / "copy"
+        shutil.copytree(
+            ROOT,
+            copy,
+            ignore=shutil.ignore_patterns(
+                ".git",
+                "__pycache__",
+                "*.egg-info",
+                "build",
+                ".mypy_cache",
+                ".ruff_cache",
+            ),
+        )
+        report = copy / "docs/quality-report.md"
+        expected = report.read_bytes()
+        report.write_text("deliberate report drift")
+        env = dict(os.environ, PYTHONPATH=str(copy / "src"), PYTHONDONTWRITEBYTECODE="1")
+        result = subprocess.run(
+            [sys.executable, "scripts/check_generated.py"],
+            cwd=copy,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("Generated artifact differs: docs/quality-report.md", result.stderr)
+        self.assertEqual(report.read_text(), "deliberate report drift")
+        refreshed = subprocess.run(
+            [sys.executable, "scripts/check_generated.py", "--write"],
+            cwd=copy,
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(refreshed.returncode, 0, refreshed.stderr)
+        self.assertEqual(report.read_bytes(), expected)

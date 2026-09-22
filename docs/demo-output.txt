@@ -30,4 +30,4 @@ Completed synthetic requests by workflow (not real performance):
 EXPECTED FAILURE detected: dashboard exports are current
 EXPECTED FAILURE detected: request lifecycle paths match current status
 PASS: original fixture restored after negative examples
-Scope: SQLite subset only; no SQL Server execution, external services, or real records
+This command runs SQLite; SQL Server integration runs separately. All records are synthetic.

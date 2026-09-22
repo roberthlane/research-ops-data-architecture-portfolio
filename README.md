@@ -50,22 +50,28 @@ are invented; dates are anchored to **2026-07-01** for repeatability.
 - [Architecture](docs/architecture.md) and [lineage](docs/lineage.md): implemented layers and fact grain.
 - [Data dictionary](docs/data-dictionary.md): columns, types, nullability, meanings, and keys generated from DDL.
 - [Quality report](docs/quality-report.md) and [failure tests](tests/test_cli_failures.py): input and reporting contracts.
-- [SQL Server test](docs/azure-sql-setup.md): disposable engine integration harness.
+- [SQL Server test](docs/sql-server-integration.md): disposable engine integration harness.
 - [Design decisions](docs/adrs) and [query notes](docs/query-plan-notes.md).
 
 ## Scope
 
 This is a personal engineering work sample using [generated data](docs/synthetic-data-provenance.md).
-SQLite and SQL Server behavior are tested in CI; see the
-[passing Python and SQL Server run](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/runs/35457514854).
+The [CI workflow](https://github.com/roberthlane/research-ops-data-architecture-portfolio/actions/workflows/ci.yml)
+checks Python and SQL Server behavior. [Engine evidence and scope](docs/sql-server-integration.md).
 The project has no production deployment or user-impact claims.
-[Remaining scope](docs/known-limitations.md).
+[Remaining scope](docs/scope.md).
 
 ## Development and licence
 
-Optional checks: install `requirements-dev.txt`, then run `ruff check .`,
-`ruff format --check .`, and `mypy`. Run `python scripts/build_dictionary.py` to
-refresh the dictionary. CI compares regenerated files with their committed versions.
+Install development tools with `python -m pip install -r requirements-dev.txt`, then run
+`make check PYTHON=python`. This is the same command CI uses: lint, formatting, strict
+types, tests, generated-artifact comparisons, and a source/wheel build with a clean
+console-install smoke test. It leaves generated files unchanged and builds in scratch storage.
+Run `make refresh PYTHON=python` to deliberately update the generated artifacts.
+
+SQL Server is separate: `make check-sql PYTHON=python SQL_SERVER_ARGS=--accept-eula`
+requires an amd64 Docker engine and accepts the container EULA. CI runs it in its
+own job. Push checks run on main; pull requests cover proposed branch changes.
 
 Robert Lane maintains this personal project with AI-assisted development and review.
 Code, documentation, and synthetic fixtures use the [MIT licence](LICENSE).

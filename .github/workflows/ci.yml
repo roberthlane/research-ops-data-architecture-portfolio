@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -25,32 +26,8 @@ jobs:
       - name: Install development checks
         run: python -m pip install -r requirements-dev.txt
 
-      - name: Lint, format, and type check
-        run: |
-          ruff check .
-          ruff format --check .
-          mypy
-
-      - name: Run tests
-        env:
-          PYTHONPATH: src
-        run: python -m unittest discover -s tests
-
-      - name: Rebuild synthetic data and quality report
-        env:
-          PYTHONPATH: src
-        run: python -m research_ops_architecture.cli
-
-      - name: Reproduce demo evidence
-        env:
-          PYTHONPATH: src
-        run: python scripts/demo.py > docs/demo-output.txt
-
-      - name: Rebuild dictionary
-        run: python scripts/build_dictionary.py
-
-      - name: Check generated artifacts are current
-        run: git diff --exit-code data/synthetic docs/quality-report.md docs/demo-output.txt docs/data-dictionary.md
+      - name: Run shared local and CI checks
+        run: make check PYTHON=python
 
   sql-server:
     runs-on: ubuntu-latest
@@ -63,4 +40,4 @@ jobs:
       - name: SQL Server integration (disposable Developer edition)
         env:
           PYTHONPATH: src
-        run: python scripts/test_sql_server.py --accept-eula
+        run: make check-sql PYTHON=python SQL_SERVER_ARGS=--accept-eula

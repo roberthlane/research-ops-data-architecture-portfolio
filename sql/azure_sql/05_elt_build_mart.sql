@@ -42,16 +42,21 @@ INSERT INTO mart.dim_date (
     is_weekend
 )
 SELECT
-    CONVERT(int, FORMAT(calendar_date, 'yyyyMMdd')),
+    YEAR(calendar_date) * 10000 + MONTH(calendar_date) * 100 + DAY(calendar_date),
     calendar_date,
     YEAR(calendar_date),
     DATEPART(quarter, calendar_date),
     MONTH(calendar_date),
-    DATENAME(month, calendar_date),
+    CHOOSE(MONTH(calendar_date), 'January', 'February', 'March', 'April', 'May', 'June',
+           'July', 'August', 'September', 'October', 'November', 'December'),
     DAY(calendar_date),
-    DATENAME(weekday, calendar_date),
-    CASE WHEN DATENAME(weekday, calendar_date) IN ('Saturday', 'Sunday') THEN 1 ELSE 0 END
+    CHOOSE(weekday_index + 1, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),
+    CASE WHEN weekday_index IN (5, 6) THEN 1 ELSE 0 END
 FROM date_series AS source
+CROSS APPLY (
+    -- 1900-01-01 was Monday. Normalize negative remainders for earlier dates too.
+    VALUES (((DATEDIFF(day, CONVERT(date, '19000101', 112), calendar_date) % 7) + 7) % 7)
+) AS weekday_number(weekday_index)
 WHERE NOT EXISTS (
     SELECT 1 FROM mart.dim_date AS target WHERE target.calendar_date = source.calendar_date
 )

@@ -101,7 +101,7 @@ def main() -> None:
             require_quality(run_quality_checks(conn))
             print("PASS: original fixture restored after negative examples")
             print(
-                "Scope: SQLite subset only; no SQL Server execution, external services, or real records"
+                "This command runs SQLite; SQL Server integration runs separately. All records are synthetic."
             )
         finally:
             conn.close()
